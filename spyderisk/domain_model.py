@@ -28,58 +28,64 @@ from rdflib import ConjunctiveGraph, Literal, URIRef
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
-CORE = "http://it-innovation.soton.ac.uk/ontologies/trustworthiness/core"
-DOMAIN = "http://it-innovation.soton.ac.uk/ontologies/trustworthiness/domain"
-SYSTEM = "http://it-innovation.soton.ac.uk/ontologies/trustworthiness/system"
+GRAPH = {
+    "core": URIRef("http://it-innovation.soton.ac.uk/ontologies/trustworthiness/core"),
+    "domain": URIRef("http://it-innovation.soton.ac.uk/ontologies/trustworthiness/domain"),
+    "system": URIRef("http://it-innovation.soton.ac.uk/ontologies/trustworthiness/system")
+}
 
-TYPE = URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-COMMENT = URIRef("http://www.w3.org/2000/01/rdf-schema#comment")
-LABEL = URIRef("http://www.w3.org/2000/01/rdf-schema#label")
-CLASS = URIRef("http://www.w3.org/2002/07/owl#Class")
-SUB_CLASS_OF = URIRef("http://www.w3.org/2000/01/rdf-schema#subClassOf")
+PREDICATE = {
+    "type": URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+    "comment": URIRef("http://www.w3.org/2000/01/rdf-schema#comment"),
+    "label": URIRef("http://www.w3.org/2000/01/rdf-schema#label"),
+    "sub_class_of": URIRef("http://www.w3.org/2000/01/rdf-schema#subClassOf"),
 
-AFFECTED_BY = URIRef(CORE + "#affectedBy")
-AFFECTS = URIRef(CORE + "#affects")
-APPLIES_TO = URIRef(CORE + "#appliesTo")
-BLOCKS = URIRef(CORE + "#blocks")
-ASSET = CLASS
-CAUSES_DIRECT_MISBEHAVIOUR = URIRef(CORE + "#causesDirectMisbehaviour")
-CAUSES_INDIRECT_MISBEHAVIOUR = URIRef(CORE + "#causesIndirectMisbehaviour")
-CAUSES_MISBEHAVIOUR = URIRef(CORE + "#causesMisbehaviour")
-CAUSES_THREAT = URIRef(CORE + "#causesThreat")
-CONTROL_SET = URIRef(CORE + "#ControlSet")
-CONTROL_STRATEGY = URIRef(CORE + "#ControlStrategy")
-HAS_ASSERTED_LEVEL = URIRef(CORE + "#hasAssertedLevel")
-HAS_ASSET = URIRef(CORE + "#hasAsset")
-HAS_CONTROL = URIRef(CORE + "#hasControl")
-HAS_CONTROL_SET = URIRef(CORE + "#hasControlSet")
-HAS_ENTRY_POINT = URIRef(CORE + "#hasEntryPoint")
-HAS_ID = URIRef(CORE + "#hasID")
-HAS_IMPACT_LEVEL = URIRef(CORE + "#hasImpactLevel")
-HAS_INFERRED_LEVEL = URIRef(CORE + "#hasInferredLevel")
-HAS_MANDATORY_CONTROL_SET = URIRef(CORE + "#hasMandatoryCS")
-HAS_MISBEHAVIOUR = URIRef(CORE + "#hasMisbehaviour")
-HAS_NODE = URIRef(CORE + "#hasNode")
-HAS_PRIOR = URIRef(CORE + "#hasPrior")
-HAS_RISK = URIRef(CORE + "#hasRisk")
-HAS_SECONDARY_EFFECT_CONDITION = URIRef(CORE + "#hasSecondaryEffectCondition")
-HAS_TWA = URIRef(CORE + "#hasTrustworthinessAttribute")
-IS_ASSERTABLE = URIRef(CORE + "#isAssertable")
-IS_EXTERNAL_CAUSE = URIRef(CORE + "#isExternalCause")
-IS_INITIAL_CAUSE = URIRef(CORE + "#isInitialCause")
-IS_NORMAL_OP = URIRef(CORE + "#isNormalOp")
-IS_NORMAL_OP_EFFECT = URIRef(CORE + "#isNormalOpEffect")
-IS_PROPOSED = URIRef(CORE + "#isProposed")
-IS_ROOT_CAUSE = URIRef(CORE + "#isRootCause")
-IS_VISIBLE = URIRef(CORE + "#isVisible")
-LOCATED_AT = URIRef(CORE + "#locatedAt")
-META_LOCATED_AT = URIRef(CORE + "#metaLocatedAt")
-MISBEHAVIOUR_SET = URIRef(CORE + "#MisbehaviourSet")
-MITIGATES = URIRef(CORE + "#mitigates")
-PARENT = URIRef(CORE + "#parent")
-THREAT = URIRef(CORE + "#Threat")
-TRUSTWORTHINESS_ATTRIBUTE_SET = URIRef(CORE + "#TrustworthinessAttributeSet")
-TWAA_DEFAULT_SETTING = URIRef(CORE + "#TWAADefaultSetting")
+    "affected_by": URIRef(GRAPH['core'] + "#affectedBy"),
+    "affects": URIRef(GRAPH['core'] + "#affects"),
+    "applies_to": URIRef(GRAPH['core'] + "#appliesTo"),
+    "blocks": URIRef(GRAPH['core'] + "#blocks"),
+    "causes_direct_misbehaviour": URIRef(GRAPH['core'] + "#causesDirectMisbehaviour"),
+    "causes_indirect_misbehaviour": URIRef(GRAPH['core'] + "#causesIndirectMisbehaviour"),
+    "causes_misbehaviour": URIRef(GRAPH['core'] + "#causesMisbehaviour"),
+    "causes_threat": URIRef(GRAPH['core'] + "#causesThreat"),
+    "has_asserted_level": URIRef(GRAPH['core'] + "#hasAssertedLevel"),
+    "has_asset": URIRef(GRAPH['core'] + "#hasAsset"),
+    "has_control": URIRef(GRAPH['core'] + "#hasControl"),
+    "has_control_set": URIRef(GRAPH['core'] + "#hasControlSet"),
+    "has_entry_point": URIRef(GRAPH['core'] + "#hasEntryPoint"),
+    "has_id": URIRef(GRAPH['core'] + "#hasID"),
+    "has_impact_level": URIRef(GRAPH['core'] + "#hasImpactLevel"),
+    "has_inferred_level": URIRef(GRAPH['core'] + "#hasInferredLevel"),
+    "has_mandatory_control_set": URIRef(GRAPH['core'] + "#hasMandatoryCS"),
+    "has_misbehaviour": URIRef(GRAPH['core'] + "#hasMisbehaviour"),
+    "has_node": URIRef(GRAPH['core'] + "#hasNode"),
+    "has_prior": URIRef(GRAPH['core'] + "#hasPrior"),
+    "has_risk": URIRef(GRAPH['core'] + "#hasRisk"),
+    "has_secondary_effect_condition": URIRef(GRAPH['core'] + "#hasSecondaryEffectCondition"),
+    "has_twa": URIRef(GRAPH['core'] + "#hasTrustworthinessAttribute"),
+    "is_assertable": URIRef(GRAPH['core'] + "#isAssertable"),
+    "is_external_cause": URIRef(GRAPH['core'] + "#isExternalCause"),
+    "is_initial_cause": URIRef(GRAPH['core'] + "#isInitialCause"),
+    "is_normal_op": URIRef(GRAPH['core'] + "#isNormalOp"),
+    "is_normal_op_effect": URIRef(GRAPH['core'] + "#isNormalOpEffect"),
+    "is_proposed": URIRef(GRAPH['core'] + "#isProposed"),
+    "is_root_cause": URIRef(GRAPH['core'] + "#isRootCause"),
+    "is_visible": URIRef(GRAPH['core'] + "#isVisible"),
+    "located_at": URIRef(GRAPH['core'] + "#locatedAt"),
+    "meta_located_at": URIRef(GRAPH['core'] + "#metaLocatedAt"),
+    "mitigates": URIRef(GRAPH['core'] + "#mitigates"),
+    "parent": URIRef(GRAPH['core'] + "#parent"),
+}
+
+TYPE = {
+    "asset": URIRef("http://www.w3.org/2002/07/owl#Class"),
+    "control_set": URIRef(GRAPH['core'] + "#ControlSet"),
+    "control_strategy": URIRef(GRAPH['core'] + "#ControlStrategy"),
+    "misbehaviour_set": URIRef(GRAPH['core'] + "#MisbehaviourSet"),
+    "threat": URIRef(GRAPH['core'] + "#Threat"),
+    "trustworthiness_attribute_set": URIRef(GRAPH['core'] + "#TrustworthinessAttributeSet"),
+    "twaa_default_setting": URIRef(GRAPH['core'] + "#TWAADefaultSetting"),
+}
 
 class DomainModel(ConjunctiveGraph):
     def __init__(self, nq_filename):
@@ -109,15 +115,15 @@ class DomainModel(ConjunctiveGraph):
     
     @property
     def assets(self):
-        return [self.asset(uriref) for uriref in self.subjects(TYPE, ASSET)]
+        return [self.asset(uriref) for uriref in self.subjects(PREDICATE['type'], TYPE['asset'])]
 
     @property
     def threats(self):
-        return [self.threat(uriref) for uriref in self.subjects(TYPE, THREAT)]
+        return [self.threat(uriref) for uriref in self.subjects(PREDICATE['type'], TYPE['threat'])]
 
     @property
     def trustworthiness_attributes(self):
-        return [self.trustworthiness_attribute(uriref) for uriref in self.subjects(TYPE, TRUSTWORTHINESS_ATTRIBUTE_SET)]
+        return [self.trustworthiness_attribute(uriref) for uriref in self.subjects(PREDICATE['type'], TYPE['trustworthiness_attribute_set'])]
 
 class Entity():
     """Superclass of Threat, Misbehaviour, Trustworthiness Attribute, Control Strategy, etc."""
@@ -134,33 +140,33 @@ class Asset(Entity):
 
     @property
     def label(self):
-        label = self.domain_model.value(subject=self.uriref, predicate=LABEL)
+        label = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
         if label is None:
             label = self.uriref.split("/")[-1]
         return label
     
     @property
     def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=COMMENT)
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
     
     @property
     def is_assertable(self):
-        return self.domain_model.value(subject=self.uriref, predicate=IS_ASSERTABLE)
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertable'])
 
     @property
     def is_visible(self):
-        return self.domain_model.value(subject=self.uriref, predicate=IS_VISIBLE)
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
 
     @property
     def parents(self):
-        return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=SUB_CLASS_OF)]
+        return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['sub_class_of'])]
 
     @property
     def trustworthiness_attributes(self):
-        twaads_urirefs = self.domain_model.subjects(predicate=META_LOCATED_AT, object=self.uriref)
+        twaads_urirefs = self.domain_model.subjects(predicate=PREDICATE['meta_located_at'], object=self.uriref)
         twa_urirefs = []
         for twaads in twaads_urirefs:
-            twa_urirefs += self.domain_model.objects(subject=twaads, predicate=HAS_TWA)
+            twa_urirefs += self.domain_model.objects(subject=twaads, predicate=PREDICATE['has_twa'])
         return [self.domain_model.trustworthiness_attribute(uriref) for uriref in twa_urirefs]
 
 class Threat(Entity):
@@ -172,11 +178,11 @@ class Threat(Entity):
 
     @property
     def label(self):
-        return self.domain_model.value(subject=self.uriref, predicate=LABEL)
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
 
     @property
     def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=COMMENT)
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
     @property
     def short_description(self):
@@ -196,15 +202,15 @@ class TrustworthinessAttribute(Entity):
 
     @property
     def label(self):
-        return self.domain_model.value(subject=self.uriref, predicate=LABEL)
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
     
     @property
     def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=COMMENT)
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
     @property
     def is_visible(self):
-        b = self.domain_model.value(subject=self.uriref, predicate=IS_VISIBLE)
+        b = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
         return b
 
 if __name__ == "__main__":
