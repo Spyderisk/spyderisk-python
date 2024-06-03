@@ -210,7 +210,7 @@ class TrustworthinessAttribute(Entity):
 if __name__ == "__main__":
     # This is test code really, but it's useful to have it here while developing.
     # Download a domain model zip from e.g. https://github.com/Spyderisk/domain-network/packages/1826148
-    dm = DomainModel("domain-network-6a3-1-4.zip")
+    dm = DomainModel("domain-network-6a5-1-1.zip")
 
     for threat in sorted(dm.threats):
         print(threat.short_description)
@@ -223,23 +223,26 @@ if __name__ == "__main__":
         if asset.is_assertable: props.append("assertable")
         parents = sorted([parent.label for parent in asset.parents])
         if parents: props.append(f"subclass of {', '.join(parents)}")
+
         print(f"{asset.label} ({', '.join(props)})")
         print(f"  {asset.comment}")
-        print("  Visible trustworthiness attributes:")
+
         lines = []
-        for twa in [twa for twa in asset.trustworthiness_attributes if twa.is_visible]:
-            s = f"{twa.label}: {twa.comment}"
-            line = f"  - {s}"
-            lines.append(line)
-        print("\n".join(sorted(lines)))
-        print("  Hidden trustworthiness attributes:")
+        for twa in asset.trustworthiness_attributes:
+            if not twa.is_visible:
+                continue
+            lines.append(f"  - {twa.label}: {twa.comment}")
+        if lines:
+            print("  Visible trustworthiness attributes:")
+            print("\n".join(sorted(lines)))
+
         lines = []
-        for twa in [twa for twa in asset.trustworthiness_attributes if not twa.is_visible]:
-            s = f"{twa.label}: {twa.comment}"
-            line = f"  - {s}"
-            lines.append(line)
-        print("\n".join(sorted(lines)))
+        for twa in asset.trustworthiness_attributes:
+            if twa.is_visible:
+                continue
+            lines.append(f"  - {twa.label}: {twa.comment}")
+        if lines:
+            print("  Hidden trustworthiness attributes:")
+            print("\n".join(sorted(lines)))
 
         print()
-
-    print("Done.")
