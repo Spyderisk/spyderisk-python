@@ -59,6 +59,10 @@ class DomainModel(ConjunctiveGraph):
         return ControlStrategy(uriref, self)
 
     @cache
+    def misbehaviour(self, uriref):
+        return Misbehaviour(uriref, self)
+
+    @cache
     def threat(self, uriref):
         return Threat(uriref, self)
 
@@ -77,6 +81,10 @@ class DomainModel(ConjunctiveGraph):
     @property
     def control_strategies(self):
         return [self.control_strategy(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['control_strategy'])]
+
+    @property
+    def misbehaviours(self):
+        return [self.misbehaviour(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['misbehaviour'])]
 
     @property
     def threats(self):
@@ -196,6 +204,25 @@ class ControlStrategy(Entity):
     @property
     def maximum_likelihood_number(self):
         return self.domain_model.level_number_inverse(self.effectiveness_number)
+
+class Misbehaviour(Entity):
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Misbehaviour: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def label(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
+
+    @property
+    def comment(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+
+    @property
+    def is_visible(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
     
 class Threat(Entity):
     def __init__(self, uriref, domain_model):

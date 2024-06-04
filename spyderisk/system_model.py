@@ -86,7 +86,7 @@ class SystemModel(ConjunctiveGraph):
         return ControlStrategy(uriref, self)
 
     @cache
-    def misbehaviour(self, uriref):
+    def misbehaviour_set(self, uriref):
         return MisbehaviourSet(uriref, self)
 
     @cache
@@ -113,8 +113,8 @@ class SystemModel(ConjunctiveGraph):
         return [self.control_strategy(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['control_strategy'])]
 
     @property
-    def misbehaviours(self):
-        return [self.misbehaviour(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['misbehaviour_set'])]
+    def misbehaviour_sets(self):
+        return [self.misbehaviour_set(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['misbehaviour_set'])]
 
     @property
     def threats(self):
@@ -283,6 +283,107 @@ class ControlStrategy(Entity):
 
     def control_set_asset_labels(self):
         return sorted([self.system_model.label(asset_uriref) for asset_uriref in self.control_set_asset_urirefs()])
+
+class MisbehaviourSet(Entity):
+    """Represents a Misbehaviour Set, or "Consequence" (a Misbehaviour at an Asset)."""
+    def __init__(self, uriref, graph):
+        super().__init__(uriref, graph)
+
+    def __str__(self):
+        return "Misbehaviour: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def label(self):
+        """Return a misbehaviour label"""
+        return self.misbehaviour.label
+
+    @property
+    def comment(self):
+        """Return a short description of a misbehaviour"""
+        likelihood = self.likelihood_level_label
+        consequence = self.label
+        asset = self.asset.label
+        aspect = None
+        if consequence.startswith("LossOf"):
+            aspect = un_camel_case(consequence[6:])
+            consequence = "loses"
+        elif consequence.startswith("Loss Of"):
+            aspect = un_camel_case(consequence[7:])
+            consequence = "loses"
+        elif consequence.startswith("Not"):
+            aspect = un_camel_case(consequence[3:])
+            consequence = "is not"
+        if aspect != None:
+            return '{} likelihood that "{}" {} {}'.format(likelihood, un_camel_case(asset), consequence, aspect)
+        else:
+            return '{} likelihood of: {} at {}'.format(likelihood, un_camel_case(consequence), un_camel_case(asset))
+
+    @property
+    def description(self):
+        """Return a long description of a misbehaviour"""
+        return "{}\n  {}\n  {}\n  Impact: {}\n  Likelihood: {}\n  Risk: {}\n  Normal operation: {}\n  External cause: {}".format(
+            str(self), str(self.asset), str(self.misbehaviour),
+            self.impact_level_label, self.likelihood_level_label, self.risk_level_label,
+            self.is_normal_op, self.is_external_cause
+        )
+
+    def _likelihood_uri(self):
+        return self.system_model.value(self.uriref, PREDICATE['has_prior'])
+
+    def _impact_uri(self):
+        return self.system_model.value(self.uriref, PREDICATE['has_impact_level'])
+
+    def _risk_uri(self):
+        return self.system_model.value(self.uriref, PREDICATE['has_risk'])
+
+    @property
+    def asset(self):
+        return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
+
+    @property
+    def misbehaviour(self):
+        return self.system_model.domain_model.misbehaviour(self.system_model.value(self.uriref, PREDICATE['has_misbehaviour']))
+
+    @property
+    def likelihood_level_number(self):
+        return self.system_model.domain_model.level_number(self._likelihood_uri())
+
+    @property
+    def likelihood_level_label(self):
+        return self.system_model.domain_model.level_label(self._likelihood_uri())
+
+    @property
+    def impact_number(self):
+        return self.system_model.domain_model.level_number(self._impact_uri())
+
+    @property
+    def impact_level_label(self):
+        return self.system_model.domain_model.level_label(self._impact_uri())
+
+    @property
+    def risk_level_number(self):
+        return self.system_model.domain_model.level_number(self._risk_uri())
+
+    @property
+    def risk_level_label(self):
+        return self.system_model.domain_model.level_label(self._risk_uri())
+
+    @property
+    def is_normal_op(self):
+        return (self.uriref, PREDICATE['is_normal_op_effect'], Literal(True)) in self.system_model
+
+    @property
+    def is_external_cause(self):
+        # if the domain model doesn't support mixed cause Threats, then some MS may be external causes
+        return (self.uriref, PREDICATE['is_external_cause'], Literal(True)) in self.system_model
+
+    @property
+    def threat_parents(self):
+        """Get all the Threats that can cause this Misbehaviour (disregarding likelihoods and untriggered Threats)"""
+        threats = [self.system_model.threat(t) for t in self.system_model.subjects(PREDICATE['causes_misbehaviour'], self.uriref)]
+        # TODO: it would be better to test if a threat had is_triggered and then check the threat's triggering CSGs to see if they were active
+        # Easiest to just check the threat likelihood, but this relies on the risk calculation already being done
+        return [threat for threat in threats if threat.likelihood_level_number >= 0]  # likelihood_number is set to -1 for untriggered threats
 
 class TrustworthinessAttributeSet(Entity):
     """Represents a Trustworthiness Attribute Set."""
@@ -483,103 +584,6 @@ class Threat(Entity):
                 if csg.is_current_risk_csg and not csg.has_inactive_contingency_plan:
                     csgs.append(csg)
         return csgs
-
-class MisbehaviourSet(Entity):
-    """Represents a Misbehaviour Set, or "Consequence" (a Misbehaviour at an Asset)."""
-    def __init__(self, uriref, graph):
-        super().__init__(uriref, graph)
-
-    def __str__(self):
-        return "Misbehaviour: {} ({})".format(self.comment, str(self.uriref))
-
-    def _likelihood_uri(self):
-        return self.system_model.value(self.uriref, PREDICATE['has_prior'])
-
-    def _impact_uri(self):
-        return self.system_model.value(self.uriref, PREDICATE['has_impact'])
-
-    def _risk_uri(self):
-        return self.system_model.value(self.uriref, PREDICATE['has_risk'])
-
-    @property
-    def misbehaviour(self):
-        return self.system_model.misbehaviour(self.system_model.value(self.uriref, PREDICATE['has_misbehaviour']))
-
-    @property
-    def asset(self):
-        return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
-
-    @property
-    def label(self):
-        """Return a misbehaviour label"""
-        return self.misbehaviour.label
-
-    @property
-    def comment(self):
-        """Return a short description of a misbehaviour"""
-        likelihood = self.likelihood_level_label
-        consequence = self.label
-        asset = self.asset.label
-        aspect = None
-        if consequence.startswith("LossOf"):
-            aspect = un_camel_case(consequence[6:])
-            consequence = "loses"
-        elif consequence.startswith("Loss Of"):
-            aspect = un_camel_case(consequence[7:])
-            consequence = "loses"
-        elif consequence.startswith("Not"):
-            aspect = un_camel_case(consequence[3:])
-            consequence = "is not"
-        if aspect != None:
-            return '{} likelihood that "{}" {} {}'.format(likelihood, un_camel_case(asset), consequence, aspect)
-        else:
-            return '{} likelihood of: {} at {}'.format(likelihood, un_camel_case(consequence), un_camel_case(asset))
-
-    @property
-    def description(self):
-        """Return a long description of a misbehaviour"""
-        return self.misbehaviour.description
-
-    @property
-    def likelihood_level_number(self):
-        return self.system_model.domain_model.level_number(self._likelihood_uri())
-
-    @property
-    def likelihood_level_label(self):
-        return self.system_model.domain_model.level_label(self._likelihood_uri())
-
-    @property
-    def impact_number(self):
-        return self.system_model.domain_model.level_number(self._impact_uri())
-
-    @property
-    def impact_level_label(self):
-        return self.system_model.domain_model.level_label(self._impact_uri())
-
-    @property
-    def risk_level_number(self):
-        return self.system_model.domain_model.level_number(self._risk_uri())
-
-    @property
-    def risk_level_label(self):
-        return self.system_model.domain_model.level_label(self._risk_uri())
-
-    @property
-    def is_normal_op(self):
-        return (self.uriref, PREDICATE['is_normal_op_effect'], Literal(True)) in self.system_model
-
-    @property
-    def is_external_cause(self):
-        # if the domain model doesn't support mixed cause Threats, then some MS may be external causes
-        return (self.uriref, PREDICATE['is_external_cause'], Literal(True)) in self.system_model
-
-    @property
-    def threat_parents(self):
-        """Get all the Threats that can cause this Misbehaviour (disregarding likelihoods and untriggered Threats)"""
-        threats = [self.system_model.threat(t) for t in self.system_model.subjects(PREDICATE['causes_misbehaviour'], self.uriref)]
-        # TODO: it would be better to test if a threat had is_triggered and then check the threat's triggering CSGs to see if they were active
-        # Easiest to just check the threat likelihood, but this relies on the risk calculation already being done
-        return [threat for threat in threats if threat.likelihood_level_number >= 0]  # likelihood_number is set to -1 for untriggered threats
 
 def un_camel_case(text):
     if text is None or text.strip() == "":
