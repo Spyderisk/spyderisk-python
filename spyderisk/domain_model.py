@@ -26,84 +26,33 @@ from functools import cache, cached_property
 
 from rdflib import ConjunctiveGraph, Literal, URIRef
 
+from core_model import GRAPH, PREDICATE, OBJECT
+
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
-GRAPH = {
-    "core": URIRef("http://it-innovation.soton.ac.uk/ontologies/trustworthiness/core"),
-    "domain": URIRef("http://it-innovation.soton.ac.uk/ontologies/trustworthiness/domain"),
-    "system": URIRef("http://it-innovation.soton.ac.uk/ontologies/trustworthiness/system")
-}
-
-PREDICATE = {
-    "type": URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-    "comment": URIRef("http://www.w3.org/2000/01/rdf-schema#comment"),
-    "label": URIRef("http://www.w3.org/2000/01/rdf-schema#label"),
-    "sub_class_of": URIRef("http://www.w3.org/2000/01/rdf-schema#subClassOf"),
-
-    "affected_by": URIRef(GRAPH['core'] + "#affectedBy"),
-    "affects": URIRef(GRAPH['core'] + "#affects"),
-    "applies_to": URIRef(GRAPH['core'] + "#appliesTo"),
-    "blocks": URIRef(GRAPH['core'] + "#blocks"),
-    "causes_direct_misbehaviour": URIRef(GRAPH['core'] + "#causesDirectMisbehaviour"),
-    "causes_indirect_misbehaviour": URIRef(GRAPH['core'] + "#causesIndirectMisbehaviour"),
-    "causes_misbehaviour": URIRef(GRAPH['core'] + "#causesMisbehaviour"),
-    "causes_threat": URIRef(GRAPH['core'] + "#causesThreat"),
-    "has_asserted_level": URIRef(GRAPH['core'] + "#hasAssertedLevel"),
-    "has_asset": URIRef(GRAPH['core'] + "#hasAsset"),
-    "has_control": URIRef(GRAPH['core'] + "#hasControl"),
-    "has_control_set": URIRef(GRAPH['core'] + "#hasControlSet"),
-    "has_entry_point": URIRef(GRAPH['core'] + "#hasEntryPoint"),
-    "has_id": URIRef(GRAPH['core'] + "#hasID"),
-    "has_impact_level": URIRef(GRAPH['core'] + "#hasImpactLevel"),
-    "has_inferred_level": URIRef(GRAPH['core'] + "#hasInferredLevel"),
-    "has_mandatory_control_set": URIRef(GRAPH['core'] + "#hasMandatoryCS"),
-    "has_misbehaviour": URIRef(GRAPH['core'] + "#hasMisbehaviour"),
-    "has_node": URIRef(GRAPH['core'] + "#hasNode"),
-    "has_prior": URIRef(GRAPH['core'] + "#hasPrior"),
-    "has_risk": URIRef(GRAPH['core'] + "#hasRisk"),
-    "has_secondary_effect_condition": URIRef(GRAPH['core'] + "#hasSecondaryEffectCondition"),
-    "has_twa": URIRef(GRAPH['core'] + "#hasTrustworthinessAttribute"),
-    "is_assertable": URIRef(GRAPH['core'] + "#isAssertable"),
-    "is_external_cause": URIRef(GRAPH['core'] + "#isExternalCause"),
-    "is_initial_cause": URIRef(GRAPH['core'] + "#isInitialCause"),
-    "is_normal_op": URIRef(GRAPH['core'] + "#isNormalOp"),
-    "is_normal_op_effect": URIRef(GRAPH['core'] + "#isNormalOpEffect"),
-    "is_proposed": URIRef(GRAPH['core'] + "#isProposed"),
-    "is_root_cause": URIRef(GRAPH['core'] + "#isRootCause"),
-    "is_visible": URIRef(GRAPH['core'] + "#isVisible"),
-    "located_at": URIRef(GRAPH['core'] + "#locatedAt"),
-    "meta_located_at": URIRef(GRAPH['core'] + "#metaLocatedAt"),
-    "mitigates": URIRef(GRAPH['core'] + "#mitigates"),
-    "parent": URIRef(GRAPH['core'] + "#parent"),
-}
-
-TYPE = {
-    "asset": URIRef("http://www.w3.org/2002/07/owl#Class"),
-    "control_set": URIRef(GRAPH['core'] + "#ControlSet"),
-    "control_strategy": URIRef(GRAPH['core'] + "#ControlStrategy"),
-    "misbehaviour_set": URIRef(GRAPH['core'] + "#MisbehaviourSet"),
-    "threat": URIRef(GRAPH['core'] + "#Threat"),
-    "trustworthiness_attribute_set": URIRef(GRAPH['core'] + "#TrustworthinessAttributeSet"),
-    "twaa_default_setting": URIRef(GRAPH['core'] + "#TWAADefaultSetting"),
-}
-
 class DomainModel(ConjunctiveGraph):
-    def __init__(self, nq_filename):
+    def __init__(self, domain_model_filename):
         super().__init__()
-        if nq_filename.endswith(".zip"):
-            with zipfile.ZipFile(nq_filename, "r") as archive:
+
+        logging.info(f"Loading domain model {domain_model_filename}")
+
+        if domain_model_filename.endswith(".zip"):
+            with zipfile.ZipFile(domain_model_filename, "r") as archive:
                 for file in archive.namelist():
                     if file.endswith(".nq"):
-                        logging.info(f"Loading {file} from {nq_filename}")
                         with archive.open(file) as f:
                             self.parse(f, format="nquads")
                         break
         else:
-            self.parse(nq_filename, format="nquads")
+            self.parse(domain_model_filename, format="nquads")
 
     @cache
     def asset(self, uriref):
         return Asset(uriref, self)
+
+    @cache
+    def control_strategy(self, uriref):
+        return ControlStrategy(uriref, self)
 
     @cache
     def threat(self, uriref):
@@ -115,16 +64,30 @@ class DomainModel(ConjunctiveGraph):
     
     @property
     def assets(self):
-        return [self.asset(uriref) for uriref in self.subjects(PREDICATE['type'], TYPE['asset'])]
+        return [self.asset(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['asset'])]
+
+    @property
+    def control_strategies(self):
+        return [self.control_strategy(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['control_strategy'])]
 
     @property
     def threats(self):
-        return [self.threat(uriref) for uriref in self.subjects(PREDICATE['type'], TYPE['threat'])]
+        return [self.threat(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['threat'])]
 
     @property
     def trustworthiness_attributes(self):
-        return [self.trustworthiness_attribute(uriref) for uriref in self.subjects(PREDICATE['type'], TYPE['trustworthiness_attribute_set'])]
+        return [self.trustworthiness_attribute(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute_set'])]
 
+    def level_number(self, uriref):
+        return int(self.value(subject=uriref, predicate=PREDICATE['level_value']))
+    
+    def level_label(self, uriref):
+        return self.value(subject=uriref, predicate=PREDICATE['label'])
+    
+    def level_number_inverse(self, number):
+        # TODO: capture the max TW/likelihood level when domain model is loaded
+        return 5 - number
+        
 class Entity():
     """Superclass of Threat, Misbehaviour, Trustworthiness Attribute, Control Strategy, etc."""
     def __init__(self, uriref, domain_model):
@@ -137,6 +100,9 @@ class Asset(Entity):
 
     def __lt__(self, other):
         return self.label < other.label
+
+    def __str__(self):
+        return "Asset: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def label(self):
@@ -169,6 +135,41 @@ class Asset(Entity):
             twa_urirefs += self.domain_model.objects(subject=twaads, predicate=PREDICATE['has_twa'])
         return [self.domain_model.trustworthiness_attribute(uriref) for uriref in twa_urirefs]
 
+class ControlStrategy(Entity):
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    @property
+    def label(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
+    
+    @property
+    def comment(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+    
+    def _effectiveness_uriref(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_blocking_effect'])
+    
+    @property
+    def effectiveness_number(self):
+        return self.domain_model.level_number(self._effectiveness_uriref())
+    
+    @property
+    def effectiveness_label(self):
+        return self.domain_model.level_label(self._effectiveness_uriref())
+    
+    @property
+    def is_current_risk(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_current_risk']) and ("-Runtime" in str(self.uriref) or "-Implementation" in str(self.uriref))
+    
+    @property
+    def is_future_risk(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_future_risk'])
+    
+    @property
+    def maximum_likelihood_number(self):
+        return self.domain_model.level_number_inverse(self.effectiveness_number)
+    
 class Threat(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
@@ -199,6 +200,9 @@ class Threat(Entity):
 class TrustworthinessAttribute(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Trustworthiness Attribute: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def label(self):
