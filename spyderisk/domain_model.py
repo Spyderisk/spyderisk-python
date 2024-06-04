@@ -51,6 +51,10 @@ class DomainModel(ConjunctiveGraph):
         return Asset(uriref, self)
 
     @cache
+    def control(self, uriref):
+        return Control(uriref, self)
+
+    @cache
     def control_strategy(self, uriref):
         return ControlStrategy(uriref, self)
 
@@ -65,6 +69,10 @@ class DomainModel(ConjunctiveGraph):
     @property
     def assets(self):
         return [self.asset(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['asset'])]
+
+    @property
+    def controls(self):
+        return [self.control(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['control'])]
 
     @property
     def control_strategies(self):
@@ -135,6 +143,25 @@ class Asset(Entity):
             twa_urirefs += self.domain_model.objects(subject=twaads, predicate=PREDICATE['has_twa'])
         return [self.domain_model.trustworthiness_attribute(uriref) for uriref in twa_urirefs]
 
+class Control(Entity):
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Control: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def label(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
+    
+    @property
+    def comment(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+    
+    @property
+    def is_visible(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
+    
 class ControlStrategy(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)

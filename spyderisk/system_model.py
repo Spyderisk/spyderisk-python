@@ -68,12 +68,18 @@ class SystemModel(ConjunctiveGraph):
             return TrustworthinessAttributeSet(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['asset']) in self:
             return Asset(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['control_set']) in self:
+            return ControlSet(uriref, self)
         else:
             raise KeyError(uriref)
 
     @cache
     def asset(self, uriref):
         return Asset(uriref, self)
+
+    @cache
+    def control_set(self, uriref):
+        return ControlSet(uriref, self)
 
     @cache
     def control_strategy(self, uriref):
@@ -97,6 +103,10 @@ class SystemModel(ConjunctiveGraph):
         for asset_class in [asset.uriref for asset in self.domain_model.assets]:
             asset_urirefs += self.subjects(PREDICATE['type'], asset_class)
         return [self.asset(uriref) for uriref in asset_urirefs]
+
+    @property
+    def control_sets(self):
+        return [self.control_set(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['control_set'])]
 
     @property
     def control_strategies(self):
@@ -135,7 +145,7 @@ class Asset(Entity):
     @property
     def comment(self):
         return self.type.comment
-    
+
     @property
     def description(self):
         return "{}\n  Class:\n    {}\n  Trustworthiness Attributes:\n    {}".format(
@@ -148,6 +158,52 @@ class Asset(Entity):
     @property
     def trustworthiness_attribute_sets(self):
         return [twas for twas in self.system_model.trustworthiness_attribute_sets if twas.asset == self]
+
+class ControlSet(Entity):
+    """Represents a Control Set: a Control at a specific Asset."""
+    def __init__(self, uriref, graph):
+        super().__init__(uriref, graph)
+
+    def __str__(self):
+        return "Control Set: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def label(self):
+        return self.control.label
+
+    @property
+    def comment(self):
+        return "{} at {}".format(self.label, self.asset.label)
+
+    @property
+    def description(self):
+        return "{}\n  {}\n  {}\n  Is proposed: {}\n  Is work in progress: {}\n  Coverage: {}".format(
+            str(self), str(self.asset), str(self.control), self.is_proposed, self.is_work_in_progress, self.has_coverage_level_label)
+
+    @property
+    def asset(self):
+        return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
+
+    @property
+    def control(self):
+        return self.system_model.domain_model.control(self.system_model.value(self.uriref, PREDICATE['has_control']))
+
+    # TODO: these two attributes can appear in inferred and asserted graphs. How do we handle that?
+    @property
+    def is_proposed(self):
+        return (self.uriref, PREDICATE['is_proposed'], Literal(True)) in self.system_model
+
+    @property
+    def is_work_in_progress(self):
+        return (self.uriref, PREDICATE['is_work_in_progress'], Literal(True)) in self.system_model
+
+    @property
+    def has_coverage_level_number(self):
+        return self.system_model.domain_model.level_number(self.system_model.value(self.uriref, PREDICATE['has_coverage_level']))
+
+    @property
+    def has_coverage_level_label(self):
+        return self.system_model.domain_model.level_label(self.system_model.value(self.uriref, PREDICATE['has_coverage_level']))
 
 class ControlStrategy(Entity):
     """Represents a Control Strategy."""
@@ -445,7 +501,7 @@ class MisbehaviourSet(Entity):
     @property
     def asset(self):
         return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
-    
+
     @property
     def label(self):
         """Return a misbehaviour label"""
