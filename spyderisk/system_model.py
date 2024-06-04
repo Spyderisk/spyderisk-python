@@ -49,6 +49,14 @@ class SystemModel(ConjunctiveGraph):
         else:
             self.parse(system_model_filename, format="nquads")
 
+        named_graphs = [context for context in self.contexts()]
+        for named_graph in named_graphs:
+            logging.info(f"Loaded named graph {named_graph.identifier}")
+            if named_graph.identifier.endswith("/inf"):
+                self.inferred_graph = named_graph
+            elif named_graph.identifier.endswith("/ui"):
+                self.ui_graph = named_graph
+
         if domain_model_filename:
             self.domain_model = domain_model.DomainModel(domain_model_filename)
 
@@ -158,8 +166,11 @@ class Asset(Entity):
 
     @property
     def description(self):
-        return "{}\n  Domain model class: {}\n  Population: {}\n  Trustworthiness Attributes:\n    {}\n  Controls:\n    {}\n  Consequences:\n    {}".format(
-            str(self), str(self.type), self.population_level_label,
+        return "{}\n  Asserted: {}\n  Domain model class: {}\n  Population: {}\n  Asserted links (object class):\n    {}\n  Links to:\n    {}\n  Links from:\n    {}\n  Trustworthiness Attributes:\n    {}\n  Controls:\n    {}\n  Consequences:\n    {}".format(
+            str(self), str(self.is_asserted), str(self.type), self.population_level_label,
+            "\n    ".join([link.comment for link in chain(self.links_to_asserted, self.links_from_asserted)]),
+            "\n    ".join([link.comment for link in self.links_to]),
+            "\n    ".join([link.comment for link in self.links_from]),
             "\n    ".join([twas.comment for twas in self.trustworthiness_attribute_sets]),
             "\n    ".join([control_set.comment for control_set in self.control_sets]),
             "\n    ".join([misbehaviour_set.comment for misbehaviour_set in self.misbehaviour_sets]),
@@ -169,6 +180,12 @@ class Asset(Entity):
     def type(self):
         return self.system_model.domain_model.asset(self.system_model.value(self.uriref, PREDICATE['type']))
 
+    @property
+    def is_asserted(self):
+        # an asset is asserted if its label is in the asserted graph (one way to tell)
+        # return true if the asset label is not in the inferred graph
+        return not any(self.system_model.inferred_graph.triples((self.uriref, PREDICATE['label'], None)))
+    
     def _population_uri(self):
         return self.system_model.value(self.uriref, PREDICATE['population'])
 
@@ -192,8 +209,21 @@ class Asset(Entity):
     def misbehaviour_sets(self):
         return [ms for ms in self.system_model.misbehaviour_sets if ms.asset == self]
 
-    # @property
-    # def links_to(self):
+    @property
+    def links_to(self):
+        return [self.system_model.relation(uriref) for uriref in self.system_model.subjects(PREDICATE['links_from'], self.uriref)]
+    
+    @property
+    def links_from(self):
+        return [self.system_model.relation(uriref) for uriref in self.system_model.subjects(PREDICATE['links_to'], self.uriref)]
+
+    @property
+    def links_to_asserted(self):
+        return [link for link in self.links_to if link.links_to.is_asserted]
+    
+    @property
+    def links_from_asserted(self):
+        return [link for link in self.links_from if link.links_from.is_asserted]
 
 class ControlSet(Entity):
     """Represents a Control Set: a Control at a specific Asset."""
@@ -433,7 +463,7 @@ class Relation(Entity):
 
     @property
     def comment(self):
-        return '{} from "{}" to "{}"'.format(self.label, self.links_from.label, self.links_to.label)
+        return '"{}" -> {} -> "{}"'.format(self.links_from.label, self.label, self.links_to.label)
 
     @property
     def description(self):
