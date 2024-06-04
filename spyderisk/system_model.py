@@ -227,22 +227,7 @@ class TrustworthinessAttributeSet(Entity):
         super().__init__(uriref, graph)
 
     def __str__(self):
-        return "Trustworthiness Attribute Set: {}\n  Label: {}\n  Description: {}\n".format(
-            str(self.uriref), self.label, self.description)
-
-    @property
-    def twa(self):
-        return self.system_model.domain_model.trustworthiness_attribute(self.system_model.value(self.uriref, PREDICATE['has_twa']))
-
-    @property
-    def asset(self):
-        return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
-
-    def _asserted_tw_level_uri(self):
-        return self.system_model.value(self.uriref, PREDICATE['has_asserted_level'])
-
-    def _inferred_tw_level_uri(self):
-        return self.system_model.value(self.uriref, PREDICATE['has_inferred_level'])
+        return "Trustworthiness Attribute Set: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def label(self):
@@ -260,10 +245,22 @@ class TrustworthinessAttributeSet(Entity):
     @property
     def description(self):
         """Return a long description of a TWAS"""
-        tw_level = self.inferred_level_label
-        twa = self.comment
-        asset = self.asset.label
-        return '{} of {} is {}'.format(un_camel_case(twa), asset, tw_level)
+        return '{}\n  {}\n  {}\n  Asserted: {}\n  Inferred: {}\n  External: {}'.format(
+            str(self), str(self.asset), str(self.twa), self.asserted_level_label, self.inferred_level_label, self.is_external_cause)
+
+    @property
+    def twa(self):
+        return self.system_model.domain_model.trustworthiness_attribute(self.system_model.value(self.uriref, PREDICATE['has_twa']))
+
+    @property
+    def asset(self):
+        return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
+
+    def _asserted_tw_level_uri(self):
+        return self.system_model.value(self.uriref, PREDICATE['has_asserted_level'])
+
+    def _inferred_tw_level_uri(self):
+        return self.system_model.value(self.uriref, PREDICATE['has_inferred_level'])
 
     @property
     def inferred_level_number(self):
@@ -278,7 +275,7 @@ class TrustworthinessAttributeSet(Entity):
         return self.system_model.domain_model.level_number(self._asserted_tw_level_uri())
 
     @property
-    def inferred_level_label(self):
+    def asserted_level_label(self):
         return self.system_model.domain_model.level_label(self._inferred_tw_level_uri())
 
     @property

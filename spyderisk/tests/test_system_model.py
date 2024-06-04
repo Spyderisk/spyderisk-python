@@ -21,5 +21,5 @@ for control_strategy in system_model.control_strategies:
     print()
 
 for twas in system_model.trustworthiness_attribute_sets:
-    print(twas)
+    print(twas.description)
     print()
