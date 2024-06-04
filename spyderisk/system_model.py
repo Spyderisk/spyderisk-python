@@ -148,8 +148,8 @@ class Asset(Entity):
 
     @property
     def description(self):
-        return "{}\n  Class:\n    {}\n  Trustworthiness Attributes:\n    {}\n  Controls:\n    {}\n  Consequences:\n    {}".format(
-            str(self), str(self.type),
+        return "{}\n  Domain model class: {}\n  Population: {}\n  Trustworthiness Attributes:\n    {}\n  Controls:\n    {}\n  Consequences:\n    {}".format(
+            str(self), str(self.type), self.population_level_label,
             "\n    ".join([twas.comment for twas in self.trustworthiness_attribute_sets]),
             "\n    ".join([control_set.comment for control_set in self.control_sets]),
             "\n    ".join([misbehaviour_set.comment for misbehaviour_set in self.misbehaviour_sets]),
@@ -158,6 +158,17 @@ class Asset(Entity):
     @property
     def type(self):
         return self.system_model.domain_model.asset(self.system_model.value(self.uriref, PREDICATE['type']))
+
+    def _population_uri(self):
+        return self.system_model.value(self.uriref, PREDICATE['population'])
+
+    @property
+    def population_level_number(self):
+        return self.system_model.domain_model.level_number(self._population_uri())
+    
+    @property
+    def population_level_label(self):
+        return self.system_model.domain_model.level_label(self._population_uri())
 
     @property
     def trustworthiness_attribute_sets(self):
@@ -190,7 +201,7 @@ class ControlSet(Entity):
     @property
     def description(self):
         return "{}\n  {}\n  {}\n  Is proposed: {}\n  Is work in progress: {}\n  Coverage: {}".format(
-            str(self), str(self.asset), str(self.control), self.is_proposed, self.is_work_in_progress, self.has_coverage_level_label)
+            str(self), str(self.asset), str(self.control), self.is_proposed, self.is_work_in_progress, self.coverage_level_label)
 
     @property
     def asset(self):
@@ -209,13 +220,16 @@ class ControlSet(Entity):
     def is_work_in_progress(self):
         return (self.uriref, PREDICATE['is_work_in_progress'], Literal(True)) in self.system_model
 
-    @property
-    def has_coverage_level_number(self):
-        return self.system_model.domain_model.level_number(self.system_model.value(self.uriref, PREDICATE['has_coverage_level']))
+    def _coverage_level_uri(self):
+        return self.system_model.value(self.uriref, PREDICATE['has_coverage_level'])
 
     @property
-    def has_coverage_level_label(self):
-        return self.system_model.domain_model.level_label(self.system_model.value(self.uriref, PREDICATE['has_coverage_level']))
+    def coverage_level_number(self):
+        return self.system_model.domain_model.level_number(self._coverage_level_uri())
+
+    @property
+    def coverage_level_label(self):
+        return self.system_model.domain_model.level_label(self._coverage_level_uri())
 
 class ControlStrategy(Entity):
     """Represents a Control Strategy."""

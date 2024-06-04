@@ -75,6 +75,7 @@ PREDICATE = {
     "meta_located_at": GRAPH['core'].metaLocatedAt,
     "mitigates": GRAPH['core'].mitigates,
     "parent": GRAPH['core'].parent,
+    "population": GRAPH['core'].population,
     "triggers": GRAPH['core'].triggers,
 }
 
