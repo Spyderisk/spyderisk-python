@@ -51,3 +51,7 @@ for threat in system_model.threats:
 for control_strategy in system_model.control_strategies:
     print(control_strategy.description)
     print()
+
+for relation in system_model.relations:
+    print(relation.description)
+    print()

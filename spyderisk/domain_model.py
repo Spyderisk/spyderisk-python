@@ -63,6 +63,10 @@ class DomainModel(ConjunctiveGraph):
         return Misbehaviour(uriref, self)
 
     @cache
+    def relation(self, uriref):
+        return Relation(uriref, self)
+
+    @cache
     def threat(self, uriref):
         return Threat(uriref, self)
 
@@ -87,6 +91,10 @@ class DomainModel(ConjunctiveGraph):
         return [self.misbehaviour(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['misbehaviour'])]
 
     @property
+    def relations(self):
+        return [Relation(uriref, self) for uriref in self.subjects(PREDICATE['type'], OBJECT['relation'])]
+
+    @property
     def threats(self):
         return [self.threat(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['threat'])]
 
@@ -100,6 +108,9 @@ class DomainModel(ConjunctiveGraph):
     def level_label(self, uriref):
         return self.value(subject=uriref, predicate=PREDICATE['label'])
     
+    def level_comment(self, uriref):
+        return self.value(subject=uriref, predicate=PREDICATE['comment'])
+
     def level_number_inverse(self, number):
         # TODO: capture the max TW/likelihood level when domain model is loaded
         return 5 - number
@@ -208,6 +219,37 @@ class ControlStrategy(Entity):
     def maximum_likelihood_number(self):
         return self.domain_model.level_number_inverse(self.effectiveness_number)
 
+class Relation(Entity):
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Relation: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def label(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
+    
+    @property
+    def comment(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+
+    @property
+    def description(self):
+        return "{}\n  Comment: {}\n  Range:\n    {}\n  Domain:\n    {}".format(
+            self.label, self.comment, 
+            "\n    ".join([str(asset.label) for asset in self.range]),
+            "\n    ".join([str(asset.label) for asset in self.domain])
+        )
+
+    @property
+    def range(self):
+        return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['range'])]
+    
+    @property
+    def domain(self):
+        return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['domain'])]
+        
 class Misbehaviour(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)

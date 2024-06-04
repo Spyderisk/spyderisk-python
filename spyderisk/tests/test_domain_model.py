@@ -63,3 +63,7 @@ for asset in sorted(domain_model.assets):
         print("\n".join(sorted(lines)))
 
     print()
+
+for rel in domain_model.relations:
+    print(rel.description)
+    print()

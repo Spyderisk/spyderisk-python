@@ -62,6 +62,8 @@ class SystemModel(ConjunctiveGraph):
             return MisbehaviourSet(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['threat']) in self:
             return Threat(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['cardinality_constraint']) in self:
+            return Relation(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['control_strategy']) in self:
             return ControlStrategy(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_attribute_set']) in self:
@@ -90,6 +92,10 @@ class SystemModel(ConjunctiveGraph):
         return MisbehaviourSet(uriref, self)
 
     @cache
+    def relation(self, uriref):
+        return Relation(uriref, self)
+
+    @cache
     def threat(self, uriref):
         return Threat(uriref, self)
 
@@ -115,6 +121,10 @@ class SystemModel(ConjunctiveGraph):
     @property
     def misbehaviour_sets(self):
         return [self.misbehaviour_set(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['misbehaviour_set'])]
+
+    @property
+    def relations(self):
+        return [self.relation(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['cardinality_constraint'])]
 
     @property
     def threats(self):
@@ -181,6 +191,9 @@ class Asset(Entity):
     @property
     def misbehaviour_sets(self):
         return [ms for ms in self.system_model.misbehaviour_sets if ms.asset == self]
+
+    # @property
+    # def links_to(self):
 
 class ControlSet(Entity):
     """Represents a Control Set: a Control at a specific Asset."""
@@ -406,6 +419,48 @@ class MisbehaviourSet(Entity):
         # Easiest to just check the threat likelihood, but this relies on the risk calculation already being done
         return [threat for threat in threats if threat.likelihood_level_number >= 0]  # likelihood_number is set to -1 for untriggered threats
 
+class Relation(Entity):
+    """Represents a Relation between two Assets. Called a CardinalityConstraint officially."""
+    def __init__(self, uriref, graph):
+        super().__init__(uriref, graph)
+
+    def __str__(self):
+        return "Relation: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def label(self):
+        return self.type.label
+
+    @property
+    def comment(self):
+        return '{} from "{}" to "{}"'.format(self.label, self.links_from.label, self.links_to.label)
+
+    @property
+    def description(self):
+        return "{}\n  Class {}\n  From (cardinality): {} ({})\n  To (cardinality): {} ({})\n".format(
+            str(self), str(self.type), self.links_from.label, self.source_cardinality, self.links_to.label, self.target_cardinality
+        )
+
+    @property
+    def type(self):
+        return self.system_model.domain_model.relation(self.system_model.value(self.uriref, PREDICATE['link_type']))
+    
+    @property
+    def links_from(self):
+        return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['links_from']))
+    
+    @property
+    def links_to(self):
+        return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['links_to']))
+
+    @property
+    def source_cardinality(self):
+        return int(self.system_model.value(self.uriref, PREDICATE['source_cardinality']))
+    
+    @property
+    def target_cardinality(self):
+        return int(self.system_model.value(self.uriref, PREDICATE['target_cardinality']))
+        
 class TrustworthinessAttributeSet(Entity):
     """Represents a Trustworthiness Attribute Set."""
     def __init__(self, uriref, graph):
