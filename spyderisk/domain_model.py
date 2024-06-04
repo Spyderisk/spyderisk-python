@@ -24,62 +24,62 @@ import zipfile
 import logging
 from functools import cache, cached_property
 
-from rdflib import ConjunctiveGraph, Literal, URIRef
+from rdflib import ConjunctiveGraph, Literal, Namespace, RDF, RDFS, OWL
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
-CORE = "http://it-innovation.soton.ac.uk/ontologies/trustworthiness/core"
-DOMAIN = "http://it-innovation.soton.ac.uk/ontologies/trustworthiness/domain"
-SYSTEM = "http://it-innovation.soton.ac.uk/ontologies/trustworthiness/system"
+CORE   = Namespace("http://it-innovation.soton.ac.uk/ontologies/trustworthiness/core#")
+DOMAIN = Namespace("http://it-innovation.soton.ac.uk/ontologies/trustworthiness/domain#")
+SYSTEM = Namespace("http://it-innovation.soton.ac.uk/ontologies/trustworthiness/system#")
 
-TYPE = URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-COMMENT = URIRef("http://www.w3.org/2000/01/rdf-schema#comment")
-LABEL = URIRef("http://www.w3.org/2000/01/rdf-schema#label")
-CLASS = URIRef("http://www.w3.org/2002/07/owl#Class")
-SUB_CLASS_OF = URIRef("http://www.w3.org/2000/01/rdf-schema#subClassOf")
+TYPE         = RDF.type
+COMMENT      = RDFS.comment
+LABEL        = RDFS.label
+CLASS        = OWL.Class
+SUB_CLASS_OF = RDFS.subClassOf
 
-AFFECTED_BY = URIRef(CORE + "#affectedBy")
-AFFECTS = URIRef(CORE + "#affects")
-APPLIES_TO = URIRef(CORE + "#appliesTo")
-BLOCKS = URIRef(CORE + "#blocks")
-ASSET = CLASS
-CAUSES_DIRECT_MISBEHAVIOUR = URIRef(CORE + "#causesDirectMisbehaviour")
-CAUSES_INDIRECT_MISBEHAVIOUR = URIRef(CORE + "#causesIndirectMisbehaviour")
-CAUSES_MISBEHAVIOUR = URIRef(CORE + "#causesMisbehaviour")
-CAUSES_THREAT = URIRef(CORE + "#causesThreat")
-CONTROL_SET = URIRef(CORE + "#ControlSet")
-CONTROL_STRATEGY = URIRef(CORE + "#ControlStrategy")
-HAS_ASSERTED_LEVEL = URIRef(CORE + "#hasAssertedLevel")
-HAS_ASSET = URIRef(CORE + "#hasAsset")
-HAS_CONTROL = URIRef(CORE + "#hasControl")
-HAS_CONTROL_SET = URIRef(CORE + "#hasControlSet")
-HAS_ENTRY_POINT = URIRef(CORE + "#hasEntryPoint")
-HAS_ID = URIRef(CORE + "#hasID")
-HAS_IMPACT_LEVEL = URIRef(CORE + "#hasImpactLevel")
-HAS_INFERRED_LEVEL = URIRef(CORE + "#hasInferredLevel")
-HAS_MANDATORY_CONTROL_SET = URIRef(CORE + "#hasMandatoryCS")
-HAS_MISBEHAVIOUR = URIRef(CORE + "#hasMisbehaviour")
-HAS_NODE = URIRef(CORE + "#hasNode")
-HAS_PRIOR = URIRef(CORE + "#hasPrior")
-HAS_RISK = URIRef(CORE + "#hasRisk")
-HAS_SECONDARY_EFFECT_CONDITION = URIRef(CORE + "#hasSecondaryEffectCondition")
-HAS_TWA = URIRef(CORE + "#hasTrustworthinessAttribute")
-IS_ASSERTABLE = URIRef(CORE + "#isAssertable")
-IS_EXTERNAL_CAUSE = URIRef(CORE + "#isExternalCause")
-IS_INITIAL_CAUSE = URIRef(CORE + "#isInitialCause")
-IS_NORMAL_OP = URIRef(CORE + "#isNormalOp")
-IS_NORMAL_OP_EFFECT = URIRef(CORE + "#isNormalOpEffect")
-IS_PROPOSED = URIRef(CORE + "#isProposed")
-IS_ROOT_CAUSE = URIRef(CORE + "#isRootCause")
-IS_VISIBLE = URIRef(CORE + "#isVisible")
-LOCATED_AT = URIRef(CORE + "#locatedAt")
-META_LOCATED_AT = URIRef(CORE + "#metaLocatedAt")
-MISBEHAVIOUR_SET = URIRef(CORE + "#MisbehaviourSet")
-MITIGATES = URIRef(CORE + "#mitigates")
-PARENT = URIRef(CORE + "#parent")
-THREAT = URIRef(CORE + "#Threat")
-TRUSTWORTHINESS_ATTRIBUTE_SET = URIRef(CORE + "#TrustworthinessAttributeSet")
-TWAA_DEFAULT_SETTING = URIRef(CORE + "#TWAADefaultSetting")
+AFFECTED_BY                    = CORE.affectedBy
+AFFECTS                        = CORE.affects
+APPLIES_TO                     = CORE.appliesTo
+BLOCKS                         = CORE.blocks
+ASSET                          = OWL.Class ## XXX surely incorrect
+CAUSES_DIRECT_MISBEHAVIOUR     = CORE.causesDirectMisbehaviour
+CAUSES_INDIRECT_MISBEHAVIOUR   = CORE.causesIndirectMisbehaviour
+CAUSES_MISBEHAVIOUR            = CORE.causesMisbehaviour
+CAUSES_THREAT                  = CORE.causesThreat
+CONTROL_SET                    = CORE.ControlSet
+CONTROL_STRATEGY               = CORE.ControlStrategy
+HAS_ASSERTED_LEVEL             = CORE.hasAssertedLevel
+HAS_ASSET                      = CORE.hasAsset
+HAS_CONTROL                    = CORE.hasControl
+HAS_CONTROL_SET                = CORE.hasControlSet
+HAS_ENTRY_POINT                = CORE.hasEntryPoint
+HAS_ID                         = CORE.hasID
+HAS_IMPACT_LEVEL               = CORE.hasImpactLevel
+HAS_INFERRED_LEVEL             = CORE.hasInferredLevel
+HAS_MANDATORY_CONTROL_SET      = CORE.hasMandatoryCS
+HAS_MISBEHAVIOUR               = CORE.hasMisbehaviour
+HAS_NODE                       = CORE.hasNode
+HAS_PRIOR                      = CORE.hasPrior
+HAS_RISK                       = CORE.hasRisk
+HAS_SECONDARY_EFFECT_CONDITION = CORE.hasSecondaryEffectCondition
+HAS_TWA                        = CORE.hasTrustworthinessAttribute
+IS_ASSERTABLE                  = CORE.isAssertable
+IS_EXTERNAL_CAUSE              = CORE.isExternalCause
+IS_INITIAL_CAUSE               = CORE.isInitialCause
+IS_NORMAL_OP                   = CORE.isNormalOp
+IS_NORMAL_OP_EFFECT            = CORE.isNormalOpEffect
+IS_PROPOSED                    = CORE.isProposed
+IS_ROOT_CAUSE                  = CORE.isRootCause
+IS_VISIBLE                     = CORE.isVisible
+LOCATED_AT                     = CORE.locatedAt
+META_LOCATED_AT                = CORE.metaLocatedAt
+MISBEHAVIOUR_SET               = CORE.MisbehaviourSet
+MITIGATES                      = CORE.mitigates
+PARENT                         = CORE.parent
+THREAT                         = CORE.Threat
+TRUSTWORTHINESS_ATTRIBUTE_SET  = CORE.TrustworthinessAttributeSet
+TWAA_DEFAULT_SETTING           = CORE.TWAADefaultSetting
 
 class DomainModel(ConjunctiveGraph):
     def __init__(self, nq_filename):
