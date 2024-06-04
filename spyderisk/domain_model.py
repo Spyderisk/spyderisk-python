@@ -174,6 +174,9 @@ class ControlStrategy(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
+    def __str__(self):
+        return "Control: {} ({})".format(self.label, str(self.uriref))
+
     @property
     def label(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])

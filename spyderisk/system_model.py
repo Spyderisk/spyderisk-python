@@ -52,7 +52,7 @@ class SystemModel(ConjunctiveGraph):
         if domain_model_filename:
             self.domain_model = domain_model.DomainModel(domain_model_filename)
 
-        # TODO: check that the domain model matches the ysstem model
+        # TODO: check that the domain model matches the system model
 
     def label(self, uriref):
         return self.value(subject=uriref, predicate=PREDICATE['label'])
@@ -231,11 +231,19 @@ class ControlStrategy(Entity):
 
     @property
     def comment(self):
-        asset_labels = self.control_set_asset_labels()  # get unique set of asset labels the CSG involves (whether proposed or not)
-        asset_labels = [f'"{label}"' for label in asset_labels]
+        asset_labels = [f'"{cs.asset.label}"' for cs in self.control_sets]  # get unique set of asset labels the CSG involves (whether proposed or not)
         asset_labels.sort()
         comment = "{} ({})".format(un_camel_case(self.label), ", ".join(asset_labels))
         return comment
+
+    @property
+    def description(self):
+        return "{}\n  Parent {}\n  Is active: {}\n  Control Sets:\n    {}\n  Blocked threats:\n    {}\n  Triggered threats:\n    {}".format(
+            str(self), str(self.parent), self.is_active,
+            "\n    ".join([control_set.comment for control_set in self.control_sets]),
+            "\n    ".join([threat.comment for threat in self.blocked_threats]),
+            "\n    ".join([threat.comment for threat in self.triggered_threats])
+        )
 
     @property
     def parent(self):
@@ -261,33 +269,27 @@ class ControlStrategy(Entity):
     def is_future_risk(self):
         return self.parent.is_future_risk
 
-    @cached_property
+    @property
     def blocked_threats(self):
-        return [self.system_model.threat(threat_uriref) for threat_uriref in self.system_model.value(self.uriref, PREDICATE['blocks'])]
+        return [self.system_model.threat(threat_uriref) for threat_uriref in self.system_model.objects(self.uriref, PREDICATE['blocks']) if threat_uriref is not None]
 
-    # TODO: add ControlSet class and use that
+    @property
+    def triggered_threats(self):
+        return [self.system_model.threat(threat_uriref) for threat_uriref in self.system_model.objects(self.uriref, PREDICATE['triggers']) if threat_uriref is not None]
+
     @property
     def is_active(self):
         # TODO: do we need to check sufficient CS?
-        control_sets = self.system_model.objects(self.uriref, PREDICATE['has_mandatory_control_set'])
+        control_sets = self.control_sets
         all_proposed = True
         for cs in control_sets:
-            if (cs, PREDICATE['is_proposed'], Literal(True)) not in self.system_model:
-                all_proposed = False
+            all_proposed &= cs.is_proposed
         return all_proposed
 
-    def control_set_urirefs(self):
-        return self.system_model.objects(self.uriref, PREDICATE['has_mandatory_control_set'])
-
-    def control_set_asset_urirefs(self):
-        cs_urirefs = self.control_set_urirefs()
-        asset_urirefs = []
-        for cs_uriref in cs_urirefs:
-            asset_urirefs += self.system_model.objects(cs_uriref, PREDICATE['located_at'])
-        return asset_urirefs
-
-    def control_set_asset_labels(self):
-        return sorted([self.system_model.label(asset_uriref) for asset_uriref in self.control_set_asset_urirefs()])
+    # TODO: deal with optional control sets
+    @property
+    def control_sets(self):
+        return [self.system_model.control_set(cs_uriref) for cs_uriref in self.system_model.objects(self.uriref, PREDICATE['has_mandatory_control_set'])]
 
 class MisbehaviourSet(Entity):
     """Represents a Misbehaviour Set, or "Consequence" (a Misbehaviour at an Asset)."""
@@ -459,8 +461,8 @@ class TrustworthinessAttributeSet(Entity):
 
 class Threat(Entity):
     """Represents a Threat."""
-    def __init__(self, uri_ref, graph):
-        super().__init__(uri_ref, graph)
+    def __init__(self, uriref, graph):
+        super().__init__(uriref, graph)
 
     def __str__(self):
         return "Threat: {} ({})".format(self.comment, str(self.uriref))
@@ -474,6 +476,9 @@ class Threat(Entity):
     def _get_threat_comment(self):
         """Return the first part of the threat description (up to the colon)"""
         comment = self.system_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+        if comment is None:
+            logging.error(f"Threat {self.uriref} has no comment, you may have loaded the wrong domain model")
+            return "****"
         quote_counter = 0
         char_index = 0
         # need to deal with the case where there is a colon in a quoted asset label
