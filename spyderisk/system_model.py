@@ -148,8 +148,11 @@ class Asset(Entity):
 
     @property
     def description(self):
-        return "{}\n  Class:\n    {}\n  Trustworthiness Attributes:\n    {}".format(
-            str(self), str(self.type), "\n    ".join([twas.comment for twas in self.trustworthiness_attribute_sets]))
+        return "{}\n  Class:\n    {}\n  Trustworthiness Attributes:\n    {}\n  Controls:\n    {}".format(
+            str(self), str(self.type),
+            "\n    ".join([twas.comment for twas in self.trustworthiness_attribute_sets]),
+            "\n    ".join([control_set.comment for control_set in self.control_sets])
+        )
 
     @property
     def type(self):
@@ -159,6 +162,10 @@ class Asset(Entity):
     def trustworthiness_attribute_sets(self):
         return [twas for twas in self.system_model.trustworthiness_attribute_sets if twas.asset == self]
 
+    @property
+    def control_sets(self):
+        return [cs for cs in self.system_model.control_sets if cs.asset == self]
+    
 class ControlSet(Entity):
     """Represents a Control Set: a Control at a specific Asset."""
     def __init__(self, uriref, graph):
@@ -173,7 +180,7 @@ class ControlSet(Entity):
 
     @property
     def comment(self):
-        return "{} at {}".format(self.label, self.asset.label)
+        return "{} at {} is {}".format(self.label, self.asset.label, "active" if self.is_proposed else "inactive")
 
     @property
     def description(self):
