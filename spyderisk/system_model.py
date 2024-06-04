@@ -148,10 +148,11 @@ class Asset(Entity):
 
     @property
     def description(self):
-        return "{}\n  Class:\n    {}\n  Trustworthiness Attributes:\n    {}\n  Controls:\n    {}".format(
+        return "{}\n  Class:\n    {}\n  Trustworthiness Attributes:\n    {}\n  Controls:\n    {}\n  Consequences:\n    {}".format(
             str(self), str(self.type),
             "\n    ".join([twas.comment for twas in self.trustworthiness_attribute_sets]),
-            "\n    ".join([control_set.comment for control_set in self.control_sets])
+            "\n    ".join([control_set.comment for control_set in self.control_sets]),
+            "\n    ".join([misbehaviour_set.comment for misbehaviour_set in self.misbehaviour_sets]),
         )
 
     @property
@@ -165,7 +166,11 @@ class Asset(Entity):
     @property
     def control_sets(self):
         return [cs for cs in self.system_model.control_sets if cs.asset == self]
-    
+
+    @property
+    def misbehaviour_sets(self):
+        return [ms for ms in self.system_model.misbehaviour_sets if ms.asset == self]
+
 class ControlSet(Entity):
     """Represents a Control Set: a Control at a specific Asset."""
     def __init__(self, uriref, graph):
@@ -180,7 +185,7 @@ class ControlSet(Entity):
 
     @property
     def comment(self):
-        return "{} at {} is {}".format(self.label, self.asset.label, "active" if self.is_proposed else "inactive")
+        return '{} at "{}" is {}'.format(self.label, self.asset.label, "active" if self.is_proposed else "inactive")
 
     @property
     def description(self):
@@ -404,7 +409,7 @@ class TrustworthinessAttributeSet(Entity):
         tw_level = self.inferred_level_label
         twa = self.label
         asset = self.asset.label
-        return '{} of {} is {}'.format(un_camel_case(twa), asset, tw_level)
+        return '{} of "{}" is {}'.format(un_camel_case(twa), asset, tw_level)
 
     @property
     def description(self):
