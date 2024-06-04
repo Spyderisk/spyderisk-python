@@ -8,18 +8,26 @@ import system_model as sm
 
 system_model = sm.SystemModel("steel.nq.gz", "domain-network-6a5-1-1.zip")
 
-for threat in system_model.threats:
-    print(threat)
-    print()
-
 for asset in system_model.assets:
     print(asset.description)
     print()
 
-for control_strategy in system_model.control_strategies:
-    print(control_strategy)
+for control_set in system_model.control_sets:
+    print(control_set.description)
+    print()
+
+for misbehaviour_set in system_model.misbehaviour_sets:
+    print(misbehaviour_set.description)
     print()
 
 for twas in system_model.trustworthiness_attribute_sets:
     print(twas.description)
+    print()
+
+for threat in system_model.threats:
+    print(threat)
+    print()
+
+for control_strategy in system_model.control_strategies:
+    print(control_strategy)
     print()
