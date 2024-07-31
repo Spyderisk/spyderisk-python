@@ -43,6 +43,12 @@ install: build
 	pip install .
 	@echo "package spyderisk installed successfully"
 
+# uninstall package
+uninstall:
+	@echo "uninstalling spyderisk..."
+	pip uninstall spyderisk 
+	@echo "package spyderisk uninstalled successfully"
+
 # show help
 help:
 	@echo "Available targets:"
@@ -52,5 +58,6 @@ help:
 	@echo "  lint     - Lint code"
 	@echo "  build    - Build spyderisk package"
 	@echo "  install  - Install spyderisk package"
+	@echo "  uninstall - Uninstall spyderisk package"
 	@echo "  help     - Display this help message"
 
