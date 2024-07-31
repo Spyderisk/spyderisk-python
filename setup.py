@@ -11,16 +11,15 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/Spyderisk/system-modeller",
-    packages=find_packages(),  # Automatically find packages in your directory
+    packages=find_packages(),
+    install_requires=[
+        rdflib>=6.0.2,
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache License",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.9',
-    install_requires=[
-        # List your project's dependencies here.
-        # 'some_package>=1.0.0',
-    ],
 )
 
