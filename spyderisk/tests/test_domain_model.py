@@ -1,5 +1,3 @@
-#!/usr/bin/python3.9
-
 # Copyright 2024 University of Southampton IT Innovation Centre
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,49 +19,64 @@
 # <!-- SPDX-FileComment: Original by Stephen Phillips, June 2024 -->
 
 import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import domain_model as dm
+import unittest
+from spyderisk.domain_model import DomainModel
 
-# Download a domain model zip from e.g. https://github.com/Spyderisk/domain-network/packages/1826148
-domain_model = dm.DomainModel("domain-network-6a5-1-1.zip")
+class TestDomainModel(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.domain_model_path = os.path.join(os.path.dirname(__file__),
+                'data', "domain-network-6a6-1-2.zip")
+        cls.domain_model = DomainModel(cls.domain_model_path)
 
-for threat in sorted(domain_model.threats):
-    print(threat.short_description)
-    print("  ", threat.long_description)
-    print()
+    @classmethod
+    def tearDownClass(cls):
+        cls.domain_model = None
+        cls.domain_model_path = None
 
-for asset in sorted(domain_model.assets):
-    props = []
-    if asset.is_visible: props.append("visible")
-    if asset.is_assertable: props.append("assertable")
-    parents = sorted([parent.label for parent in asset.parents])
-    if parents: props.append(f"subclass of {', '.join(parents)}")
+    def test_threat(self):
+        for threat in sorted(self.domain_model.threats):
+            print(threat.short_description)
+            print("  ", threat.long_description)
+            print()
 
-    print(f"{asset.label} ({', '.join(props)})")
-    print(f"  {asset.comment}")
+    def test_asset(self):
+        for asset in sorted(self.domain_model.assets):
+            props = []
+            if asset.is_visible: props.append("visible")
+            if asset.is_assertable: props.append("assertable")
+            parents = sorted([parent.label for parent in asset.parents])
+            if parents: props.append(f"subclass of {', '.join(parents)}")
 
-    lines = []
-    for twa in asset.trustworthiness_attributes:
-        if not twa.is_visible:
-            continue
-        lines.append(f"  - {twa.label}: {twa.comment}")
-    if lines:
-        print("  Visible trustworthiness attributes:")
-        print("\n".join(sorted(lines)))
+            print(f"{asset.label} ({', '.join(props)})")
+            print(f"  {asset.comment}")
 
-    lines = []
-    for twa in asset.trustworthiness_attributes:
-        if twa.is_visible:
-            continue
-        lines.append(f"  - {twa.label}: {twa.comment}")
-    if lines:
-        print("  Hidden trustworthiness attributes:")
-        print("\n".join(sorted(lines)))
+            lines = []
+            for twa in asset.trustworthiness_attributes:
+                if not twa.is_visible:
+                    continue
+                lines.append(f"  - {twa.label}: {twa.comment}")
+            if lines:
+                print("  Visible trustworthiness attributes:")
+                print("\n".join(sorted(lines)))
 
-    print()
+            lines = []
+            for twa in asset.trustworthiness_attributes:
+                if twa.is_visible:
+                    continue
+                lines.append(f"  - {twa.label}: {twa.comment}")
+            if lines:
+                print("  Hidden trustworthiness attributes:")
+                print("\n".join(sorted(lines)))
 
-for rel in domain_model.relations:
-    print(rel.description)
-    print()
+            print()
+
+    def test_rel(self):
+        for rel in self.domain_model.relations:
+            print(rel.description)
+            print()
+
+
+if __name__ == "__main__":
+    unittest.main()

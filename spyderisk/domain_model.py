@@ -26,7 +26,7 @@ from functools import cache, cached_property
 
 from rdflib import ConjunctiveGraph, Literal, URIRef
 
-from core_model import GRAPH, PREDICATE, OBJECT
+from .core_model import GRAPH, PREDICATE, OBJECT
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 

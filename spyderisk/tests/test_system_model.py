@@ -21,37 +21,59 @@
 # <!-- SPDX-FileComment: Original by Stephen Phillips, June 2024 -->
 
 import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import system_model as sm
+import unittest
+from spyderisk.system_model import SystemModel
 
-system_model = sm.SystemModel("steel.nq.gz", "domain-network-6a5-1-1.zip")
+class TestSystemModel(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.domain_model_path = os.path.join(os.path.dirname(__file__),
+                'data', "domain-network-6a6-1-2.zip")
+        cls.system_model_path = os.path.join(os.path.dirname(__file__),
+                'data', "router.nq.gz")
+        cls.system_model = SystemModel(cls.system_model_path, cls.domain_model_path)
 
-for asset in system_model.assets:
-    print(asset.description)
-    print()
+    @classmethod
+    def tearDownClass(cls):
+        cls.system_model = None
+        cls.domain_model_path = None
+        cls.system_model_path = None
 
-for control_set in system_model.control_sets:
-    print(control_set.description)
-    print()
+    def test_asset(self):
+        for asset in self.system_model.assets:
+            print(asset.description)
+            print()
 
-for misbehaviour_set in system_model.misbehaviour_sets:
-    print(misbehaviour_set.description)
-    print()
+    def test_control_set(self):
+        for control_set in self.system_model.control_sets:
+            print(control_set.description)
+            print()
 
-for twas in system_model.trustworthiness_attribute_sets:
-    print(twas.description)
-    print()
+    def test_misbehaviour_set(self):
+        for misbehaviour_set in self.system_model.misbehaviour_sets:
+            print(misbehaviour_set.description)
+            print()
 
-for threat in system_model.threats:
-    print(threat)
-    print()
+    def test_twas(self):
+        for twas in self.system_model.trustworthiness_attribute_sets:
+            print(twas.description)
+            print()
 
-for control_strategy in system_model.control_strategies:
-    print(control_strategy.description)
-    print()
+    def test_threat(self):
+        for threat in self.system_model.threats:
+            print(threat)
+            print()
 
-for relation in system_model.relations:
-    print(relation.description)
-    print()
+    def test_control_strategy(self):
+        for control_strategy in self.system_model.control_strategies:
+            print(control_strategy.description)
+            print()
+
+    def test_relation(self):
+        for relation in self.system_model.relations:
+            print(relation.description)
+            print()
+
+if __name__ == "__main__":
+    unittest.main()

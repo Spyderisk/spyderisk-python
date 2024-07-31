@@ -28,8 +28,8 @@ from itertools import chain
 
 from rdflib import ConjunctiveGraph, Literal, URIRef
 
-import domain_model
-from core_model import GRAPH, PREDICATE, OBJECT
+from .core_model import GRAPH, PREDICATE, OBJECT
+from .domain_model import DomainModel
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
@@ -58,7 +58,7 @@ class SystemModel(ConjunctiveGraph):
                 self.ui_graph = named_graph
 
         if domain_model_filename:
-            self.domain_model = domain_model.DomainModel(domain_model_filename)
+            self.domain_model = DomainModel(domain_model_filename)
 
         # TODO: check that the domain model matches the system model
 
@@ -181,7 +181,7 @@ class Asset(Entity):
         return self.system_model.domain_model.asset(self.system_model.value(self.uriref, PREDICATE['type']))
 
     @property
-    def is_asserted(self):
+    def is_asserted(self) -> bool:
         # an asset is asserted if its label is in the asserted graph (one way to tell)
         # return true if the asset label is not in the inferred graph
         return not any(self.system_model.inferred_graph.triples((self.uriref, PREDICATE['label'], None)))
