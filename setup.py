@@ -13,7 +13,7 @@ setup(
     url="https://github.com/Spyderisk/system-modeller",
     packages=find_packages(),
     install_requires=[
-        rdflib>=6.0.2,
+        'rdflib>=6.0.2',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -24,7 +24,7 @@ import zipfile
 import logging
 from functools import cache, cached_property
 
-from rdflib import ConjunctiveGraph, Literal, URIRef
+from rdflib import ConjunctiveGraph, Literal, URIRef, RDF, OWL
 
 from .core_model import GRAPH, PREDICATE, OBJECT
 
@@ -73,7 +73,34 @@ class DomainModel(ConjunctiveGraph):
     @cache
     def trustworthiness_attribute(self, uriref):
         return TrustworthinessAttribute(uriref, self)
-    
+
+    @cache
+    def trustworthiness_attribute_set(self, uriref):
+        return TrustworthinessAttributeSet(uriref, self)
+
+    @property
+    @cache
+    def ontology_uri(self):
+        tmp_rui = None
+        for s in self.subjects(RDF.type, OWL.Ontology):
+            tmp_uri = s
+            break
+        return tmp_uri
+
+    @property
+    @cache
+    def version_info(self):
+        return self.value(self.ontology_uri, PREDICATE['version_info'])
+
+    @property
+    def label(self):
+        return self.value(self.ontology_uri, PREDICATE['label'])
+
+    @property
+    def comment(self):
+        return self.value(self.ontology_uri, PREDICATE['comment'])
+
+
     @property
     def assets(self):
         return [self.asset(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['asset'])]
@@ -99,8 +126,12 @@ class DomainModel(ConjunctiveGraph):
         return [self.threat(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['threat'])]
 
     @property
+    def trustworthiness_attributes_set(self):
+        return [self.trustworthiness_attribute_set(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute_set'])]
+
+    @property
     def trustworthiness_attributes(self):
-        return [self.trustworthiness_attribute(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute_set'])]
+        return [self.trustworthiness_attribute(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute'])]
 
     def level_number(self, uriref):
         return int(self.value(subject=uriref, predicate=PREDICATE['level_value']))
@@ -122,6 +153,7 @@ class Entity():
         self.domain_model = domain_model
 
 class Asset(Entity):
+    """ Represents a domain model Asset """
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
@@ -129,7 +161,7 @@ class Asset(Entity):
         return self.label < other.label
 
     def __str__(self):
-        return "Asset: {} ({})".format(self.label, str(self.uriref))
+        return "Domain Asset: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def label(self):
@@ -141,7 +173,7 @@ class Asset(Entity):
     @property
     def comment(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
-    
+     
     @property
     def is_assertable(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertable'])
@@ -161,6 +193,7 @@ class Asset(Entity):
         for twaads in twaads_urirefs:
             twa_urirefs += self.domain_model.objects(subject=twaads, predicate=PREDICATE['has_twa'])
         return [self.domain_model.trustworthiness_attribute(uriref) for uriref in twa_urirefs]
+
 
 class Control(Entity):
     def __init__(self, uriref, domain_model):
@@ -306,7 +339,7 @@ class TrustworthinessAttribute(Entity):
     @property
     def label(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
-    
+
     @property
     def comment(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
@@ -315,3 +348,26 @@ class TrustworthinessAttribute(Entity):
     def is_visible(self):
         b = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
         return b
+
+
+class TrustworthinessAttributeSet(Entity):
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Trustworthiness Attribute Set: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def label(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
+
+    @property
+    def comment(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+
+    @property
+    def is_visible(self):
+        b = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
+        return b
+
+

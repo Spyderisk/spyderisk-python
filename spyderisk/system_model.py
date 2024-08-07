@@ -26,7 +26,7 @@ import re
 from functools import cache, cached_property
 from itertools import chain
 
-from rdflib import ConjunctiveGraph, Literal, URIRef
+from rdflib import ConjunctiveGraph, Literal, URIRef, RDF, OWL
 
 from .core_model import GRAPH, PREDICATE, OBJECT
 from .domain_model import DomainModel
@@ -60,28 +60,133 @@ class SystemModel(ConjunctiveGraph):
         if domain_model_filename:
             self.domain_model = DomainModel(domain_model_filename)
 
-        # TODO: check that the domain model matches the system model
+        # check that the domain model matches the system model
+        self.check_domain_match()
+
+
+    def check_domain_match(self):
+        dm_version = self.domain_model.version_info
+
+        #TODO: does it have to check the name too, e.g. NETWORK?
+
+        if dm_version != self.domain_version:
+            logging.error(f"Domain model version mismatch! Expected: {self.domain_version}, Found: {dm_version}")
+            raise ValueError(f"Domain model version mismatch! Expected: {self.domain_version}, Found: {dm_version}")
+
+
+    @property
+    @cache
+    def ontology_uri(self):
+        tmp_rui = None
+        for s in self.subjects(RDF.type, OWL.Ontology):
+            tmp_uri = s
+            break
+        return tmp_uri
+
+    @property
+    @cache
+    def domain_version(self):
+        return self.value(self.ontology_uri, PREDICATE['domain_version'])
 
     def label(self, uriref):
         return self.value(subject=uriref, predicate=PREDICATE['label'])
 
     def get_entity(self, uriref):
-        if (uriref, PREDICATE['type'], OBJECT['misbehaviour_set']) in self:
-            return MisbehaviourSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['threat']) in self:
-            return Threat(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['cardinality_constraint']) in self:
-            return Relation(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['control_strategy']) in self:
-            return ControlStrategy(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_attribute_set']) in self:
-            return TrustworthinessAttributeSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['asset']) in self:
+        if (uriref, PREDICATE['type'], OBJECT['asset']) in self:
             return Asset(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['asset_group']) in self:
+            return AssetGroup(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['ca_setting']) in self:
+            return CASetting(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['cardinality_constraint']) in self:
+            return CardinalityConstraint(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['compliance_set']) in self:
+            return ComplianceSet(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['composite_thing']) in self:
+            return CompositeThing(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['construction_pattern']) in self:
+            return ConstructionPattern(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['control']) in self:
+            return Control(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['control_inference_pattern']) in self:
+            return ControlInferencePattern(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['control_set']) in self:
             return ControlSet(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['control_strategy']) in self:
+            return ControlStrategy(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['default_setting']) in self:
+            return DefaultSetting(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['distinct_node_group']) in self:
+            return DistinctNodeGroup(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['domain_pattern_ui_setting']) in self:
+            return DomainPatternUISetting(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['impact_level']) in self:
+            return ImpactLevel(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['inferred_node_setting']) in self:
+            return InferredNodeSetting(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['level']) in self:
+            return Level(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['likelihood']) in self:
+            return Likelihood(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['link']) in self:
+            return Link(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['ma_default_setting']) in self:
+            return MADefaultSetting(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['matching_pattern']) in self:
+            return MatchingPattern(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['metadata_pair']) in self:
+            return MetadataPair(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['misbehaviour']) in self:
+            return Misbehaviour(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['misbehaviour_inhibition_set']) in self:
+            return MisbehaviourInhibitionSet(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['misbehaviour_set']) in self:
+            return MisbehaviourSet(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['mitigation_level']) in self:
+            return MitigationLevel(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['mitigation_set']) in self:
+            return MitigationSet(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['node']) in self:
+            return Node(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['pattern']) in self:
+            return Pattern(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['population_level']) in self:
+            return PopulationLevel(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['risk_level']) in self:
+            return RiskLevel(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['role']) in self:
+            return Role(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['role_link']) in self:
+            return RoleLink(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['root_pattern']) in self:
+            return RootPattern(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['set_member']) in self:
+            return SetMember(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['setting']) in self:
+            return Setting(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['twaa_default_setting']) in self:
+            return TWAADefaultSetting(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['threat']) in self:
+            return Threat(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['threat_category']) in self:
+            return ThreatCategory(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['triplet_member']) in self:
+            return TripletMember(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_attribute']) in self:
+            return TrustworthinessAttribute(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_attribute_set']) in self:
+            return TrustworthinessAttributeSet(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_impact_set']) in self:
+            return TrustworthinessImpactSet(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['trustworthinesslevel']) in self:
+            return TrustworthinessLevel(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['validation_pattern']) in self:
+            return ValidationPattern(uriref, self)
         else:
-            raise KeyError(uriref)
+            #TODO 
+            obj = next(self.objects(uriref, PREDICATE['type']), None)
+            print("Not identified OBJECT:", obj, uriref)
+            #raise KeyError(uriref)
 
     @cache
     def asset(self, uriref):
@@ -148,13 +253,22 @@ class Entity():
         self.uriref = uriref
         self.system_model = system_model
 
+    @property
+    def has_id(self):
+        return self.system_model.value(self.uriref, PREDICATE['has_id'])
+
+    @property
+    def parent(self):
+        return self.system_model.value(self.uriref, PREDICATE['parent'])
+
+
 class Asset(Entity):
-    """Represents an Asset."""
+    """Represents a system model Asset."""
     def __init__(self, uriref, graph):
         super().__init__(uriref, graph)
 
     def __str__(self):
-        return "Asset: {} ({})".format(self.label, str(self.uriref))
+        return "System Asset: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def label(self):
@@ -166,15 +280,26 @@ class Asset(Entity):
 
     @property
     def description(self):
-        return "{}\n  Asserted: {}\n  Domain model class: {}\n  Population: {}\n  Asserted links (object class):\n    {}\n  Links to:\n    {}\n  Links from:\n    {}\n  Trustworthiness Attributes:\n    {}\n  Controls:\n    {}\n  Consequences:\n    {}".format(
-            str(self), str(self.is_asserted), str(self.type), self.population_level_label,
-            "\n    ".join([link.comment for link in chain(self.links_to_asserted, self.links_from_asserted)]),
-            "\n    ".join([link.comment for link in self.links_to]),
-            "\n    ".join([link.comment for link in self.links_from]),
-            "\n    ".join([twas.comment for twas in self.trustworthiness_attribute_sets]),
-            "\n    ".join([control_set.comment for control_set in self.control_sets]),
-            "\n    ".join([misbehaviour_set.comment for misbehaviour_set in self.misbehaviour_sets]),
-        )
+        parts = [
+            f"{str(self)}\n",
+            f"  ID: {str(self.has_id)}\n",
+            f"  Asserted: {str(self.is_asserted)}\n",
+            f"  Domain model class: {str(self.type)}\n",
+            f"  Population: {self.population_level_label}\n",
+            f"  Asserted links (object class):\n    "
+            + "\n    ".join(link.comment for link in chain(self.links_to_asserted, self.links_from_asserted)) + "\n",
+            f"  Links to:\n    "
+            + "\n    ".join(link.comment for link in self.links_to) + "\n",
+            f"  Links from:\n    "
+            + "\n    ".join(link.comment for link in self.links_from) + "\n",
+            f"  Trustworthiness attribute sets:\n    "
+            + "\n    ".join(twas.comment for twas in self.trustworthiness_attribute_sets) + "\n",
+            f"  Control sets:\n    "
+            + "\n    ".join(control_set.comment for control_set in self.control_sets) + "\n",
+            f"  Misbehaviour sets:\n    "
+            + "\n    ".join(misbehaviour_set.comment for misbehaviour_set in self.misbehaviour_sets)
+        ]
+        return "".join(parts)
 
     @property
     def type(self):
@@ -185,14 +310,14 @@ class Asset(Entity):
         # an asset is asserted if its label is in the asserted graph (one way to tell)
         # return true if the asset label is not in the inferred graph
         return not any(self.system_model.inferred_graph.triples((self.uriref, PREDICATE['label'], None)))
-    
+
     def _population_uri(self):
         return self.system_model.value(self.uriref, PREDICATE['population'])
 
     @property
     def population_level_number(self):
         return self.system_model.domain_model.level_number(self._population_uri())
-    
+
     @property
     def population_level_label(self):
         return self.system_model.domain_model.level_label(self._population_uri())
@@ -212,7 +337,7 @@ class Asset(Entity):
     @property
     def links_to(self):
         return [self.system_model.relation(uriref) for uriref in self.system_model.subjects(PREDICATE['links_from'], self.uriref)]
-    
+
     @property
     def links_from(self):
         return [self.system_model.relation(uriref) for uriref in self.system_model.subjects(PREDICATE['links_to'], self.uriref)]
@@ -220,7 +345,7 @@ class Asset(Entity):
     @property
     def links_to_asserted(self):
         return [link for link in self.links_to if link.links_to.is_asserted]
-    
+
     @property
     def links_from_asserted(self):
         return [link for link in self.links_from if link.links_from.is_asserted]
@@ -474,11 +599,11 @@ class Relation(Entity):
     @property
     def type(self):
         return self.system_model.domain_model.relation(self.system_model.value(self.uriref, PREDICATE['link_type']))
-    
+
     @property
     def links_from(self):
         return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['links_from']))
-    
+
     @property
     def links_to(self):
         return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['links_to']))
@@ -486,11 +611,11 @@ class Relation(Entity):
     @property
     def source_cardinality(self):
         return int(self.system_model.value(self.uriref, PREDICATE['source_cardinality']))
-    
+
     @property
     def target_cardinality(self):
         return int(self.system_model.value(self.uriref, PREDICATE['target_cardinality']))
-        
+
 class TrustworthinessAttributeSet(Entity):
     """Represents a Trustworthiness Attribute Set."""
     def __init__(self, uriref, graph):
@@ -572,6 +697,9 @@ class Threat(Entity):
     def _risk_uri(self):
         return self.system_model.value(self.uriref, PREDICATE['has_risk'])
 
+    def _frequency_uri(self):
+        return self.system_model.value(self.uriref, PREDICATE['has_frequency'])
+
     def _get_threat_comment(self):
         """Return the first part of the threat description (up to the colon)"""
         comment = self.system_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
@@ -634,6 +762,14 @@ class Threat(Entity):
         return (self.uriref, PREDICATE['is_normal_op'], Literal(True)) in self.system_model
 
     @property
+    def is_current_risk(self):
+        return (self.uriref, PREDICATE['is_current_risk'], Literal(True)) in self.system_model
+
+    @property
+    def is_future_risk(self):
+        return (self.uriref, PREDICATE['is_future_risk'], Literal(True)) in self.system_model
+
+    @property
     def is_root_cause(self):
         return (self.uriref, PREDICATE['is_root_cause'], Literal(True)) in self.system_model
 
@@ -674,6 +810,30 @@ class Threat(Entity):
     def misbehaviour_parents(self):
         """Get all the Misbehaviours that can cause this Threat (disregarding likelihoods), for all Threat types"""
         return self.primary_threat_misbehaviour_parents + self.secondary_threat_misbehaviour_parents
+
+    @property
+    def blocked_by(self):
+        blocked_by_csgs = self.system_model.objects(self.uriref, PREDICATE['blocked_by'])
+        return [csg for csg in blocked_by_csgs]
+
+    @property
+    def mitigated_by(self):
+        mitigated_by_csgs = self.system_model.objects(self.uriref, PREDICATE['mitigated_by'])
+        return [csg for csg in mitigated_by_csgs]
+
+    @property
+    def triggered_by(self):
+        triggered_by_csgs = self.system_model.objects(self.uriref, PREDICATE['triggered_by'])
+        return [csg for csg in triggered_by_csgs]
+
+    @property
+    def threatens(self):
+        return next(self.system_model.objects(self.uriref, PREDICATE['threatens']), None)
+
+    @property
+    def is_triggered(self):
+        return (self.uriref, PREDICATE['is_triggered'], Literal(True)) in self.system_model
+
 
     @property
     def control_strategies(self, future_risk=None):

@@ -23,6 +23,7 @@ import os
 import unittest
 from spyderisk.domain_model import DomainModel
 
+#@unittest.skip("temporarily skipping domain model test")
 class TestDomainModel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -34,6 +35,19 @@ class TestDomainModel(unittest.TestCase):
     def tearDownClass(cls):
         cls.domain_model = None
         cls.domain_model_path = None
+
+
+    def test_version(self):
+        version = self.domain_model.version_info
+        self.assertIsNotNone(version)
+
+    def test_label(self):
+        label = self.domain_model.label
+        self.assertIsNotNone(label)
+
+    def test_comment(self):
+        comment = self.domain_model.comment
+        self.assertIsNotNone(comment)
 
     def test_threat(self):
         for threat in sorted(self.domain_model.threats):
@@ -76,6 +90,15 @@ class TestDomainModel(unittest.TestCase):
         for rel in self.domain_model.relations:
             print(rel.description)
             print()
+
+    def test_twa(self):
+        twas = self.domain_model.trustworthiness_attributes
+        self.assertIsNotNone(twas)
+
+    #@unittest.skip("temporarily skipping twa_set domain test")
+    def test_twa_set(self):
+        twass = self.domain_model.trustworthiness_attributes_set
+        self.assertIsNotNone(twass)
 
 
 if __name__ == "__main__":
