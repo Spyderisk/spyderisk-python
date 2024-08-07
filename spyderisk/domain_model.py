@@ -100,6 +100,8 @@ class DomainModel(ConjunctiveGraph):
     def comment(self):
         return self.value(self.ontology_uri, PREDICATE['comment'])
 
+    def is_asset(self, uriref):
+        return (uriref, PREDICATE['type'], OBJECT['asset']) in self
 
     @property
     def assets(self):
@@ -135,17 +137,17 @@ class DomainModel(ConjunctiveGraph):
 
     def level_number(self, uriref):
         return int(self.value(subject=uriref, predicate=PREDICATE['level_value']))
-    
+
     def level_label(self, uriref):
         return self.value(subject=uriref, predicate=PREDICATE['label'])
-    
+
     def level_comment(self, uriref):
         return self.value(subject=uriref, predicate=PREDICATE['comment'])
 
     def level_number_inverse(self, number):
         # TODO: capture the max TW/likelihood level when domain model is loaded
         return 5 - number
-        
+
 class Entity():
     """Superclass of Threat, Misbehaviour, Trustworthiness Attribute, Control Strategy, etc."""
     def __init__(self, uriref, domain_model):

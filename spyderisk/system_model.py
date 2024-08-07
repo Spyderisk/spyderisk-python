@@ -183,10 +183,13 @@ class SystemModel(ConjunctiveGraph):
         elif (uriref, PREDICATE['type'], OBJECT['validation_pattern']) in self:
             return ValidationPattern(uriref, self)
         else:
-            #TODO 
+            # check if it's a domain class
             obj = next(self.objects(uriref, PREDICATE['type']), None)
-            print("Not identified OBJECT:", obj, uriref)
-            #raise KeyError(uriref)
+            if self.domain_model.is_asset(obj):
+                return Asset(uriref, self)
+            else:
+                print("Not identified OBJECT:", str(obj)[60:], str(uriref)[60:])
+                raise KeyError(uriref)
 
     @cache
     def asset(self, uriref):
@@ -217,6 +220,7 @@ class SystemModel(ConjunctiveGraph):
         return TrustworthinessAttributeSet(uriref, self)
 
     @property
+    @cache
     def assets(self):
         asset_urirefs = []
         for asset_class in [asset.uriref for asset in self.domain_model.assets]:

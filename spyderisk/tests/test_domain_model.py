@@ -22,6 +22,8 @@ import os
 
 import unittest
 from spyderisk.domain_model import DomainModel
+from spyderisk.domain_model import TrustworthinessAttribute, TrustworthinessAttributeSet
+from spyderisk.domain_model import Asset, Relation, Threat
 
 #@unittest.skip("temporarily skipping domain model test")
 class TestDomainModel(unittest.TestCase):
@@ -36,7 +38,6 @@ class TestDomainModel(unittest.TestCase):
         cls.domain_model = None
         cls.domain_model_path = None
 
-
     def test_version(self):
         version = self.domain_model.version_info
         self.assertIsNotNone(version)
@@ -49,6 +50,54 @@ class TestDomainModel(unittest.TestCase):
         comment = self.domain_model.comment
         self.assertIsNotNone(comment)
 
+    def test_assets(self):
+        # Ensure that assetss are found
+        assets = self.domain_model.assets
+        self.assertGreater(len(assets), 0, "No assets found in the domain model.")
+
+        # Check that each asset is an instance of Asset
+        for asset in assets:
+            self.assertIsInstance(asset, Asset)
+
+    def test_relations(self):
+        # Ensure that relations are found
+        relations = self.domain_model.relations
+        self.assertGreater(len(relations), 0, "No relations found in the domain model.")
+
+        # Check that each relation is an instance of Relation
+        for relation in relations:
+            self.assertIsInstance(relation, Relation)
+
+    def test_threats(self):
+        # Ensure that threats are found
+        threats = self.domain_model.threats
+        self.assertGreater(len(threats), 0, "No threats found in the domain model.")
+
+        # Check that each threat is an instance of Threat
+        for threat in threats:
+            self.assertIsInstance(threat, Threat)
+
+    def test_trustworthiness_attributes(self):
+        # Ensure that trustworthiness_attributes are found
+        twas = self.domain_model.trustworthiness_attributes
+        self.assertGreater(len(twas), 0, "No trustworthiness_attributes found in the domain model.")
+
+        # Check that each trustworthiness_attribute is an instance of
+        # TrustworthinessAttribute
+        for twa in twas:
+            self.assertIsInstance(twa, TrustworthinessAttribute)
+
+    def test_trustworthiness_attributes_set(self):
+        # Ensure that trustworthiness_attribute_sets are found
+        twass = self.domain_model.trustworthiness_attributes_set
+        self.assertGreater(len(twass), 0, "No trustworthiness_attribute_sets found in the domain model.")
+
+        # Check that each trustworthiness_attribute_set is an instance of
+        # TrustworthinessAttributeSet
+        for twas in twass:
+            self.assertIsInstance(twas, TrustworthinessAttributeSet)
+
+    @unittest.skip("temporarily skipping domain model test")
     def test_threat(self):
         for threat in sorted(self.domain_model.threats):
             print(threat.short_description)
