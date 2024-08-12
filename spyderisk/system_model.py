@@ -253,13 +253,8 @@ class SystemModel(ConjunctiveGraph):
     def trustworthiness_attribute_sets(self):
         return [self.trustworthiness_attribute_set(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute_set'])]
 
-    def risk_vector(self):
-        rv = defaultdict(int)
-        for ms in self.misbehaviour_sets:
-            rv[ms.risk_level_label] += 1
-        return rv
 
-    def risk_vector_level(self):
+    def risk_vector(self):
         rv = defaultdict(int)
         rl_map = defaultdict(int)
         for ms in self.misbehaviour_sets:
@@ -487,16 +482,26 @@ class ControlStrategy(Entity):
     @property
     def is_active(self):
         # TODO: do we need to check sufficient CS?
-        control_sets = self.control_sets
         all_proposed = True
-        for cs in control_sets:
+        for cs in self.mandatory_control_sets:
             all_proposed &= cs.is_proposed
         return all_proposed
+
+    @property
+    def mandatory_control_sets(self):
+        return [self.system_model.control_set(cs_uriref) for cs_uriref in self.system_model.objects(self.uriref, PREDICATE['has_mandatory_control_set'])]
+
+    @property
+    def optional_control_sets(self):
+        return [self.system_model.control_set(cs_uriref) for cs_uriref in self.system_model.objects(self.uriref, PREDICATE['has_optional_control_set'])]
 
     # TODO: deal with optional control sets
     @property
     def control_sets(self):
-        return [self.system_model.control_set(cs_uriref) for cs_uriref in self.system_model.objects(self.uriref, PREDICATE['has_mandatory_control_set'])]
+        #return [self.system_model.control_set(cs_uriref) for cs_uriref in self.system_model.objects(self.uriref, PREDICATE['has_mandatory_control_set'])]
+        return self.mandatory_control_sets + self.optional_control_sets
+
+
 
 class MisbehaviourSet(Entity):
     """Represents a Misbehaviour Set, or "Consequence" (a Misbehaviour at an Asset)."""
@@ -554,6 +559,11 @@ class MisbehaviourSet(Entity):
     def asset(self):
         return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
 
+    #TODO is it located_ at or asset?
+    @property
+    def located_at(self):
+        return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
+
     @property
     def misbehaviour(self):
         return self.system_model.domain_model.misbehaviour(self.system_model.value(self.uriref, PREDICATE['has_misbehaviour']))
@@ -594,6 +604,11 @@ class MisbehaviourSet(Entity):
     @property
     def is_external_cause(self):
         # if the domain model doesn't support mixed cause Threats, then some MS may be external causes
+        return (self.uriref, PREDICATE['is_external_cause'], Literal(True)) in self.system_model
+
+    #TODO 
+    @property
+    def caused_by(self):
         return (self.uriref, PREDICATE['is_external_cause'], Literal(True)) in self.system_model
 
     @property
@@ -712,6 +727,7 @@ class TrustworthinessAttributeSet(Entity):
     def is_default_tw(self):
         """Return Boolean describing whether this is a TWAS which has the Default TW attribute"""
         return (self.uriref, PREDICATE['has_twa'], DEFAULT_TW) in self.system_model
+
 
 class Threat(Entity):
     """Represents a Threat."""

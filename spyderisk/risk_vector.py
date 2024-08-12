@@ -40,7 +40,7 @@ class RiskVector:
             # If keys do not match, set object to None or raise an error
             raise ValueError("Keys in risk_dict and risk_levels must match.")
 
-        self.sorted_levels = self._sort_dict(self.risk_levels)
+        self._sorted_levels = self._sort_dict(self.risk_levels)
 
     def _normalise_dict(self, a_dict):
         return {str(key): value for key, value in a_dict.items()}
@@ -57,10 +57,10 @@ class RiskVector:
     def overall_level(self):
         if not self.risk_levels:
             return None
-        return self.sorted_levels[0][0]
+        return self._sorted_levels[0][0]
 
     def __str__(self):
-        return "\n".join([f"{str(level[0])}: {self.risk_dict[level[0]]}" for level in self.sorted_levels])
+        return "\n".join([f"{str(level[0])}: {self.risk_dict[level[0]]}" for level in self._sorted_levels])
 
     def __eq__(self, other):
         if not isinstance(other, RiskVector):
