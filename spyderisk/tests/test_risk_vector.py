@@ -41,13 +41,38 @@ class TestRiskVector(unittest.TestCase):
             })
 
     def test_risk_vector_str(self):
-        rv = RiskVector(self.risk_levels, self.rdf_levels)
+        try:
+            rv = RiskVector(self.risk_levels, self.rdf_levels)
+        except ValueError:
+            self.fail("RiskVector raised ValueError unexpectedly with matching keys.")
+
         expected_str = (
             "Medium: 20\n"
             "Low: 50\n"
             "Very Low: 800"
         )
         self.assertEqual(str(rv), expected_str)
+
+    def test_risk_vector_comparison2(self):
+        r_levels1 = defaultdict(int, {
+            Literal('Very Low'): 800,
+            Literal('Low'): 50,
+            Literal('Medium'): 25,
+            Literal('Very High'): 5
+        })
+        rdf_levels = defaultdict(int, {
+            Literal('Very Low'): 0,
+            Literal('Low'): 1,
+            Literal('Medium'): 2,
+            Literal('Very High'): 4
+            })
+        rv1 = RiskVector(r_levels1, rdf_levels)
+        rv2 = RiskVector(self.risk_levels, self.rdf_levels)
+
+        self.assertTrue(rv1 > rv2)
+        self.assertFalse(rv2 > rv1)
+        self.assertFalse(rv1 == rv2)
+        self.assertTrue(rv2 < rv1)
 
     def test_risk_vector_comparison(self):
         r_levels1 = defaultdict(int, {
@@ -73,6 +98,27 @@ class TestRiskVector(unittest.TestCase):
         rv2 = RiskVector(self.risk_levels, self.rdf_levels)
 
         self.assertEqual(rv1, rv2)
+
+    def test_mismatched_keys(self):
+        # Create risk_dict and risk_levels with mismatched keys
+        r_levels1 = defaultdict(int, {
+            Literal('Very Low'): 800,
+            Literal('Low'): 50,
+            Literal('Medium'): 25,
+            Literal('Very High'): 5
+        })
+        rdf_levels = defaultdict(int, {
+            Literal('Very Low'): 0,
+            Literal('Low'): 1,
+            Literal('Medium'): 2
+            })
+
+        # Check that initializing RiskVector with mismatched keys raises ValueError
+        with self.assertRaises(ValueError) as context:
+            rv = RiskVector(r_levels1, rdf_levels)
+
+        self.assertEqual(str(context.exception), "Keys in risk_dict and risk_levels must match.")
+
 
 if __name__ == "__main__":
     unittest.main()

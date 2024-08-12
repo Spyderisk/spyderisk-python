@@ -35,6 +35,11 @@ class RiskVector:
         self.risk_dict = self._normalise_dict(risk_dict)
         self.risk_levels = self._normalise_dict(risk_levels)
 
+        # check if keys are the same
+        if set(self.risk_dict.keys()) != set(self.risk_levels.keys()):
+            # If keys do not match, set object to None or raise an error
+            raise ValueError("Keys in risk_dict and risk_levels must match.")
+
         self.sorted_levels = self._sort_dict(self.risk_levels)
 
     def _normalise_dict(self, a_dict):

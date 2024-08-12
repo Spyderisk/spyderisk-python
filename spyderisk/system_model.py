@@ -266,7 +266,11 @@ class SystemModel(ConjunctiveGraph):
             if not ms.risk_level_label in rl_map:
                 rl_map[ms.risk_level_label] = ms.risk_level_value
             rv[ms.risk_level_label] += 1
-        return RiskVector(rv, rl_map)
+        try:
+            return RiskVector(rv, rl_map)
+        except ValueError as e:
+            logging.error(f"Error creating RiskVector: {e}")
+            return None
 
 class Entity():
     """Superclass of Threat, Misbehaviour, Trustwworthiness Attribute or Control Strategy."""

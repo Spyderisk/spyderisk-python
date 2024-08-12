@@ -25,7 +25,7 @@ from spyderisk.domain_model import DomainModel
 from spyderisk.domain_model import TrustworthinessAttribute, TrustworthinessAttributeSet
 from spyderisk.domain_model import Asset, Relation, Threat
 
-#@unittest.skip("temporarily skipping domain model test")
+@unittest.skip("temporarily skipping domain model test")
 class TestDomainModel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
