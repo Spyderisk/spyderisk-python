@@ -30,7 +30,8 @@ class TestDomainModel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.domain_model_path = os.path.join(os.path.dirname(__file__),
-                'data', "domain-network-6a6-1-2.zip")
+            'data', "domain-network-6a7-1-1-Beta-unfiltered.zip")
+            #'data', "domain-network-6a6-1-2.zip")
         cls.domain_model = DomainModel(cls.domain_model_path)
 
     @classmethod
@@ -40,10 +41,12 @@ class TestDomainModel(unittest.TestCase):
 
     def test_version(self):
         version = self.domain_model.version_info
+        print(f"Domain model version {version}")
         self.assertIsNotNone(version)
 
     def test_label(self):
         label = self.domain_model.label
+        print(f"Domain model label {label}")
         self.assertIsNotNone(label)
 
     def test_comment(self):

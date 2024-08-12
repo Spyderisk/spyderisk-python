@@ -27,15 +27,18 @@ from spyderisk.system_model import SystemModel
 from spyderisk.system_model import Relation, TrustworthinessAttributeSet
 from spyderisk.system_model import Asset, ControlSet, MisbehaviourSet, Threat
 from spyderisk.system_model import ControlStrategy
+from spyderisk.risk_vector import RiskVector
 
 #@unittest.skip("temporarily skipping system model test")
 class TestSystemModel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.domain_model_path = os.path.join(os.path.dirname(__file__),
-                'data', "domain-network-6a6-1-2.zip")
+                'data', "domain-network-6a7-1-1-Beta-unfiltered.zip")
+                #'data', "domain-network-6a6-1-2.zip")
         cls.system_model_path = os.path.join(os.path.dirname(__file__),
-                'data', "router.nq.gz")
+                'data', "router_v1-b.nq.gz")
+                #'data', "router.nq.gz")
         cls.system_model = SystemModel(cls.system_model_path, cls.domain_model_path)
 
     @classmethod
@@ -50,7 +53,7 @@ class TestSystemModel(unittest.TestCase):
 
     @unittest.skip("temporarily skipping test")
     def test_me(self):
-        threats = self.system_model.threats
+        print("test me")
         breakpoint()
 
     #@unittest.skip("temporarily skipping test")

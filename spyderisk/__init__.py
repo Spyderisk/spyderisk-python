@@ -22,6 +22,8 @@ from .system_model import Relation as SystemRelation
 from .system_model import Threat as SystemThreat
 from .system_model import TrustworthinessAttributeSet as SystemTrustworthinessAttributeSet
 
+from .risk_vector import RiskVector
+
 __all__ = [
         "CoreModel",
         "DomainModel",
@@ -42,5 +44,6 @@ __all__ = [
         "SystemRelation",
         "SystemThreat",
         "SystemTrustworthinessAttributeSet",
+        "RiskVector",
         ]
 

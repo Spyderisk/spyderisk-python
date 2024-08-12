@@ -25,11 +25,13 @@ import logging
 import re
 from functools import cache, cached_property
 from itertools import chain
+from collections import defaultdict
 
 from rdflib import ConjunctiveGraph, Literal, URIRef, RDF, OWL
 
 from .core_model import GRAPH, PREDICATE, OBJECT
 from .domain_model import DomainModel
+from .risk_vector import RiskVector
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
@@ -251,6 +253,21 @@ class SystemModel(ConjunctiveGraph):
     def trustworthiness_attribute_sets(self):
         return [self.trustworthiness_attribute_set(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute_set'])]
 
+    def risk_vector(self):
+        rv = defaultdict(int)
+        for ms in self.misbehaviour_sets:
+            rv[ms.risk_level_label] += 1
+        return rv
+
+    def risk_vector_level(self):
+        rv = defaultdict(int)
+        rl_map = defaultdict(int)
+        for ms in self.misbehaviour_sets:
+            if not ms.risk_level_label in rl_map:
+                rl_map[ms.risk_level_label] = ms.risk_level_value
+            rv[ms.risk_level_label] += 1
+        return RiskVector(rv, rl_map)
+
 class Entity():
     """Superclass of Threat, Misbehaviour, Trustwworthiness Attribute or Control Strategy."""
     def __init__(self, uriref, system_model):
@@ -320,7 +337,7 @@ class Asset(Entity):
 
     @property
     def population_level_number(self):
-        return self.system_model.domain_model.level_number(self._population_uri())
+        return self.system_model.domain_model.level_value(self._population_uri())
 
     @property
     def population_level_label(self):
@@ -397,7 +414,7 @@ class ControlSet(Entity):
 
     @property
     def coverage_level_number(self):
-        return self.system_model.domain_model.level_number(self._coverage_level_uri())
+        return self.system_model.domain_model.level_value(self._coverage_level_uri())
 
     @property
     def coverage_level_label(self):
@@ -539,7 +556,7 @@ class MisbehaviourSet(Entity):
 
     @property
     def likelihood_level_number(self):
-        return self.system_model.domain_model.level_number(self._likelihood_uri())
+        return self.system_model.domain_model.level_value(self._likelihood_uri())
 
     @property
     def likelihood_level_label(self):
@@ -547,19 +564,24 @@ class MisbehaviourSet(Entity):
 
     @property
     def impact_number(self):
-        return self.system_model.domain_model.level_number(self._impact_uri())
+        return self.system_model.domain_model.level_value(self._impact_uri())
 
     @property
     def impact_level_label(self):
         return self.system_model.domain_model.level_label(self._impact_uri())
 
     @property
-    def risk_level_number(self):
-        return self.system_model.domain_model.level_number(self._risk_uri())
+    @cache
+    def risk_level_value(self):
+        return self.system_model.domain_model.level_value(self._risk_uri())
 
     @property
+    @cache
     def risk_level_label(self):
         return self.system_model.domain_model.level_label(self._risk_uri())
+
+    def risk_level(self):
+        return Level(self.risk_level_label, self.risk_level_value)
 
     @property
     def is_normal_op(self):
@@ -857,6 +879,7 @@ class Threat(Entity):
                 if csg.is_current_risk_csg and not csg.has_inactive_contingency_plan:
                     csgs.append(csg)
         return csgs
+
 
 def un_camel_case(text):
     if text is None or text.strip() == "":

@@ -135,7 +135,7 @@ class DomainModel(ConjunctiveGraph):
     def trustworthiness_attributes(self):
         return [self.trustworthiness_attribute(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute'])]
 
-    def level_number(self, uriref):
+    def level_value(self, uriref):
         return int(self.value(subject=uriref, predicate=PREDICATE['level_value']))
 
     def level_label(self, uriref):
@@ -171,11 +171,11 @@ class Asset(Entity):
         if label is None:
             label = self.uriref.split("/")[-1]
         return label
-    
+
     @property
     def comment(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
-     
+
     @property
     def is_assertable(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertable'])
@@ -207,15 +207,15 @@ class Control(Entity):
     @property
     def label(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
-    
+
     @property
     def comment(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
-    
+
     @property
     def is_visible(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-    
+
 class ControlStrategy(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
@@ -226,30 +226,30 @@ class ControlStrategy(Entity):
     @property
     def label(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
-    
+
     @property
     def comment(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
-    
+
     def _effectiveness_uriref(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_blocking_effect'])
-    
+
     @property
     def effectiveness_number(self):
         return self.domain_model.level_number(self._effectiveness_uriref())
-    
+
     @property
     def effectiveness_label(self):
         return self.domain_model.level_label(self._effectiveness_uriref())
-    
+
     @property
     def is_current_risk(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_current_risk']) and ("-Runtime" in str(self.uriref) or "-Implementation" in str(self.uriref))
-    
+
     @property
     def is_future_risk(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_future_risk'])
-    
+
     @property
     def maximum_likelihood_number(self):
         return self.domain_model.level_number_inverse(self.effectiveness_number)
@@ -264,7 +264,7 @@ class Relation(Entity):
     @property
     def label(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
-    
+
     @property
     def comment(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
@@ -272,7 +272,7 @@ class Relation(Entity):
     @property
     def description(self):
         return "{}\n  Comment: {}\n  Range:\n    {}\n  Domain:\n    {}".format(
-            self.label, self.comment, 
+            self.label, self.comment,
             "\n    ".join([str(asset.label) for asset in self.range]),
             "\n    ".join([str(asset.label) for asset in self.domain])
         )
@@ -280,11 +280,11 @@ class Relation(Entity):
     @property
     def range(self):
         return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['range'])]
-    
+
     @property
     def domain(self):
         return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['domain'])]
-        
+
 class Misbehaviour(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
@@ -303,7 +303,7 @@ class Misbehaviour(Entity):
     @property
     def is_visible(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-    
+
 class Threat(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
