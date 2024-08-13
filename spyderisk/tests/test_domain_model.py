@@ -26,7 +26,8 @@ from spyderisk.domain_model import DomainModel
 from spyderisk.domain_model import TrustworthinessAttribute, TrustworthinessAttributeSet
 from spyderisk.domain_model import Asset, Relation, Threat
 
-#@unittest.skip("temporarily skipping domain model test")
+
+# @unittest.skip("temporarily skipping domain model test")
 class TestDomainModel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -108,10 +109,13 @@ class TestDomainModel(unittest.TestCase):
     def test_asset(self):
         for asset in sorted(self.domain_model.assets):
             props = []
-            if asset.is_visible: props.append("visible")
-            if asset.is_assertable: props.append("assertable")
+            if asset.is_visible:
+                props.append("visible")
+            if asset.is_assertable:
+                props.append("assertable")
             parents = sorted([parent.label for parent in asset.parents])
-            if parents: props.append(f"subclass of {', '.join(parents)}")
+            if parents:
+                props.append(f"subclass of {', '.join(parents)}")
 
             print(f"{asset.label} ({', '.join(props)})")
             print(f"  {asset.comment}")
@@ -145,7 +149,7 @@ class TestDomainModel(unittest.TestCase):
         twas = self.domain_model.trustworthiness_attributes
         self.assertIsNotNone(twas)
 
-    #@unittest.skip("temporarily skipping twa_set domain test")
+    # @unittest.skip("temporarily skipping twa_set domain test")
     def test_twa_set(self):
         twass = self.domain_model.trustworthiness_attributes_set
         self.assertIsNotNone(twass)

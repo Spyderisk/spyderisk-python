@@ -21,10 +21,9 @@
 # <!-- SPDX-FileComment: Original by Panos Melas, August 2024 -->
 
 import logging
-from functools import cache
-from collections import defaultdict
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
 
 class RiskVector:
     def __init__(self, risk_dict=None, risk_levels=None):
@@ -91,4 +90,3 @@ class RiskVector:
                 return True
 
         return False
-

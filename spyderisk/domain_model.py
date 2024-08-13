@@ -22,13 +22,14 @@
 
 import zipfile
 import logging
-from functools import cache, cached_property
+from functools import cache
 
-from rdflib import ConjunctiveGraph, Literal, URIRef, RDF, OWL
+from rdflib import ConjunctiveGraph, RDF, OWL
 
-from .core_model import GRAPH, PREDICATE, OBJECT
+from .core_model import PREDICATE, OBJECT
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
 
 class DomainModel(ConjunctiveGraph):
     def __init__(self, domain_model_filename):
@@ -144,11 +145,13 @@ class DomainModel(ConjunctiveGraph):
         # TODO: capture the max TW/likelihood level when domain model is loaded
         return 5 - number
 
+
 class Entity():
     """Superclass of Threat, Misbehaviour, Trustworthiness Attribute, Control Strategy, etc."""
     def __init__(self, uriref, domain_model):
         self.uriref = uriref
         self.domain_model = domain_model
+
 
 class Asset(Entity):
     """ Represents a domain model Asset """
@@ -212,6 +215,7 @@ class Control(Entity):
     def is_visible(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
 
+
 class ControlStrategy(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
@@ -250,6 +254,7 @@ class ControlStrategy(Entity):
     def maximum_likelihood_number(self):
         return self.domain_model.level_number_inverse(self.effectiveness_number)
 
+
 class Relation(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
@@ -281,6 +286,7 @@ class Relation(Entity):
     def domain(self):
         return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['domain'])]
 
+
 class Misbehaviour(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
@@ -299,6 +305,7 @@ class Misbehaviour(Entity):
     @property
     def is_visible(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
+
 
 class Threat(Entity):
     def __init__(self, uriref, domain_model):
@@ -326,6 +333,7 @@ class Threat(Entity):
         """Return the longer description of a threat (after the colon)"""
         comment = self.comment.split(':', 1)[-1].strip()
         return comment[0].upper() + comment[1:]
+
 
 class TrustworthinessAttribute(Entity):
     def __init__(self, uriref, domain_model):
@@ -367,5 +375,3 @@ class TrustworthinessAttributeSet(Entity):
     def is_visible(self):
         b = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
         return b
-
-

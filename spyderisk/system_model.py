@@ -23,7 +23,7 @@
 import gzip
 import logging
 import re
-from functools import cache, cached_property
+from functools import cache
 from itertools import chain
 from collections import defaultdict
 
@@ -38,6 +38,7 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 # TODO: remove these domain-model specific predicates
 DEFAULT_TW = URIRef(GRAPH['domain'] + "#DefaultTW")
 IN_SERVICE = URIRef(GRAPH['domain'] + "#InService")
+
 
 class SystemModel(ConjunctiveGraph):
     def __init__(self, system_model_filename, domain_model_filename):
@@ -67,11 +68,10 @@ class SystemModel(ConjunctiveGraph):
         # check that the domain model matches the system model
         self.check_domain_match()
 
-
     def check_domain_match(self):
         dm_version = self.domain_model.version_info
 
-        #TODO: does it have to check the name too, e.g. NETWORK?
+        # TODO: does it have to check the name too, e.g. NETWORK?
 
         if dm_version != self.domain_version:
             logging.error(f"Domain model version mismatch! Expected: {self.domain_version}, Found: {dm_version}")
@@ -121,34 +121,26 @@ class SystemModel(ConjunctiveGraph):
     @property
     @cache
     def risks_valid(self):
-        #result = next(self.objects(None, PREDICATE['risks_valid']), None)
         result = self.value(URIRef(self.graph.identifier), PREDICATE['risks_valid'])
         return bool(result)
 
     @property
     @cache
     def is_valid(self):
-        #result = next(self.objects(None, PREDICATE['is_valid']), None)
         result = self.value(URIRef(self.graph.identifier), PREDICATE['is_valid'])
         return bool(result)
 
     @property
     @cache
     def is_validating(self):
-        #result = next(self.objects(None, PREDICATE['is_validating']), None)
         result = self.value(URIRef(self.graph.identifier), PREDICATE['is_validating'])
         return bool(result)
-
 
     @property
     @cache
     def is_calculating_risk(self):
         result = next(self.objects(None, PREDICATE['is_calculating_risk']), None)
         return bool(result)
-
-
-    #TODO
-    # comment ?
 
     @property
     def info(self):
@@ -337,12 +329,11 @@ class SystemModel(ConjunctiveGraph):
     def trustworthiness_attribute_sets(self):
         return [self.trustworthiness_attribute_set(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute_set'])]
 
-
     def risk_vector(self):
         rv = defaultdict(int)
         rl_map = defaultdict(int)
         for ms in self.misbehaviour_sets:
-            if not ms.risk_level_label in rl_map:
+            if ms.risk_level_label not in rl_map:
                 rl_map[ms.risk_level_label] = ms.risk_level_value
             rv[ms.risk_level_label] += 1
         try:
@@ -350,6 +341,7 @@ class SystemModel(ConjunctiveGraph):
         except ValueError as e:
             logging.error(f"Error creating RiskVector: {e}")
             return None
+
 
 class Entity():
     """Superclass of Threat, Misbehaviour, Trustwworthiness Attribute or Control Strategy."""
@@ -390,17 +382,17 @@ class Asset(Entity):
             f"  Asserted: {str(self.is_asserted)}\n",
             f"  Domain model class: {str(self.type)}\n",
             f"  Population: {self.population_level_label}\n",
-            f"  Asserted links (object class):\n    "
+            "  Asserted links (object class):\n    "
             + "\n    ".join(link.comment for link in chain(self.links_to_asserted, self.links_from_asserted)) + "\n",
-            f"  Links to:\n    "
+            "  Links to:\n    "
             + "\n    ".join(link.comment for link in self.links_to) + "\n",
-            f"  Links from:\n    "
+            "  Links from:\n    "
             + "\n    ".join(link.comment for link in self.links_from) + "\n",
-            f"  Trustworthiness attribute sets:\n    "
+            "  Trustworthiness attribute sets:\n    "
             + "\n    ".join(twas.comment for twas in self.trustworthiness_attribute_sets) + "\n",
-            f"  Control sets:\n    "
+            "  Control sets:\n    "
             + "\n    ".join(control_set.comment for control_set in self.control_sets) + "\n",
-            f"  Misbehaviour sets:\n    "
+            "  Misbehaviour sets:\n    "
             + "\n    ".join(misbehaviour_set.comment for misbehaviour_set in self.misbehaviour_sets)
         ]
         return "".join(parts)
@@ -454,6 +446,7 @@ class Asset(Entity):
     def links_from_asserted(self):
         return [link for link in self.links_from if link.links_from.is_asserted]
 
+
 class ControlSet(Entity):
     """Represents a Control Set: a Control at a specific Asset."""
     def __init__(self, uriref, graph):
@@ -502,6 +495,7 @@ class ControlSet(Entity):
     @property
     def coverage_level_label(self):
         return self.system_model.domain_model.level_label(self._coverage_level_uri())
+
 
 class ControlStrategy(Entity):
     """Represents a Control Strategy."""
@@ -582,9 +576,7 @@ class ControlStrategy(Entity):
     # TODO: deal with optional control sets
     @property
     def control_sets(self):
-        #return [self.system_model.control_set(cs_uriref) for cs_uriref in self.system_model.objects(self.uriref, PREDICATE['has_mandatory_control_set'])]
         return self.mandatory_control_sets + self.optional_control_sets
-
 
 
 class MisbehaviourSet(Entity):
@@ -616,7 +608,7 @@ class MisbehaviourSet(Entity):
         elif consequence.startswith("Not"):
             aspect = un_camel_case(consequence[3:])
             consequence = "is not"
-        if aspect != None:
+        if aspect is not None:
             return '{} likelihood that "{}" {} {}'.format(likelihood, un_camel_case(asset), consequence, aspect)
         else:
             return '{} likelihood of: {} at {}'.format(likelihood, un_camel_case(consequence), un_camel_case(asset))
@@ -643,7 +635,7 @@ class MisbehaviourSet(Entity):
     def asset(self):
         return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
 
-    #TODO is it located_ at or asset?
+    # TODO is it located_ at or asset?
     @property
     def located_at(self):
         return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
@@ -678,9 +670,6 @@ class MisbehaviourSet(Entity):
     def risk_level_label(self):
         return self.system_model.domain_model.label_uri(self._risk_uri())
 
-    def risk_level(self):
-        return Level(self.risk_level_label, self.risk_level_value)
-
     @property
     def is_normal_op(self):
         return (self.uriref, PREDICATE['is_normal_op_effect'], Literal(True)) in self.system_model
@@ -690,7 +679,7 @@ class MisbehaviourSet(Entity):
         # if the domain model doesn't support mixed cause Threats, then some MS may be external causes
         return (self.uriref, PREDICATE['is_external_cause'], Literal(True)) in self.system_model
 
-    #TODO 
+    # TODO
     @property
     def caused_by(self):
         return (self.uriref, PREDICATE['is_external_cause'], Literal(True)) in self.system_model
@@ -702,6 +691,7 @@ class MisbehaviourSet(Entity):
         # TODO: it would be better to test if a threat had is_triggered and then check the threat's triggering CSGs to see if they were active
         # Easiest to just check the threat likelihood, but this relies on the risk calculation already being done
         return [threat for threat in threats if threat.likelihood_level_number >= 0]  # likelihood_number is set to -1 for untriggered threats
+
 
 class Relation(Entity):
     """Represents a Relation between two Assets. Called a CardinalityConstraint officially."""
@@ -744,6 +734,7 @@ class Relation(Entity):
     @property
     def target_cardinality(self):
         return int(self.system_model.value(self.uriref, PREDICATE['target_cardinality']))
+
 
 class TrustworthinessAttributeSet(Entity):
     """Represents a Trustworthiness Attribute Set."""
@@ -964,7 +955,6 @@ class Threat(Entity):
     def is_triggered(self):
         return (self.uriref, PREDICATE['is_triggered'], Literal(True)) in self.system_model
 
-
     @property
     def control_strategies(self, future_risk=None):
         """Return list of control strategy objects that block the threat"""
@@ -972,12 +962,12 @@ class Threat(Entity):
         # the "blocks" predicate means a CSG appropriate for current or future risk calc
         # the "mitigates" predicate means a CSG appropriate for future risk (often a contingency plan for a current risk CSG); excluded from likelihood calc in current risk
         # The "mitigates" predicate is not used in newer domain models
-        if future_risk == True or future_risk == None:
+        if future_risk is True or future_risk is None:
             for csg_uri in chain(self.system_model.subjects(PREDICATE['blocks'], self.uriref), self.system_model.subjects(PREDICATE['mitigates'], self.uriref)):
                 csg = self.system_model.control_strategy(csg_uri)
                 if csg.is_future_risk_csg:
                     csgs.append(csg)
-        elif future_risk == False or future_risk == None:
+        elif future_risk is False or future_risk is None:
             for csg_uri in self.system_model.subjects(PREDICATE['blocks'], self.uriref):
                 csg = self.system_model.control_strategy(csg_uri)
                 if csg.is_current_risk_csg and not csg.has_inactive_contingency_plan:

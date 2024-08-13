@@ -28,9 +28,9 @@ from spyderisk.system_model import SystemModel
 from spyderisk.system_model import Relation, TrustworthinessAttributeSet
 from spyderisk.system_model import Asset, ControlSet, MisbehaviourSet, Threat
 from spyderisk.system_model import ControlStrategy
-from spyderisk.risk_vector import RiskVector
 
-#@unittest.skip("temporarily skipping system model test")
+
+# @unittest.skip("temporarily skipping system model test")
 class TestSystemModel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -73,10 +73,9 @@ class TestSystemModel(unittest.TestCase):
     @unittest.skip("temporarily skipping test")
     def test_me(self):
         print("test me")
-        info = self.system_model.info
         breakpoint()
 
-    #@unittest.skip("temporarily skipping test")
+    # @unittest.skip("temporarily skipping test")
     def test_threatens(self):
         threats = self.system_model.threats
         for thr in threats:
@@ -84,7 +83,7 @@ class TestSystemModel(unittest.TestCase):
             threatens_asset = self.system_model.get_entity(a_uri)
             self.assertIsInstance(threatens_asset, Asset)
 
-    #@unittest.skip("temporarily skipping test")
+    # @unittest.skip("temporarily skipping test")
     def test_assets(self):
         # Ensure that assets are found
         assets = self.system_model.assets
@@ -135,7 +134,7 @@ class TestSystemModel(unittest.TestCase):
         trustworthiness_attribute_sets = self.system_model.trustworthiness_attribute_sets
         self.assertGreater(len(trustworthiness_attribute_sets), 0, "No trustworthiness_attribute_sets found in the system model.")
 
-        # Check that each twas is an instance of TrustworthinessAttributeSet 
+        # Check that each twas is an instance of TrustworthinessAttributeSet
         for trustworthiness_attribute_set in trustworthiness_attribute_sets:
             self.assertIsInstance(trustworthiness_attribute_set, TrustworthinessAttributeSet)
 
@@ -147,7 +146,6 @@ class TestSystemModel(unittest.TestCase):
         # Check that each control_strategy is an instance of ControlStrategy
         for control_strategy in control_strategies:
             self.assertIsInstance(control_strategy, ControlStrategy)
-
 
     @unittest.skip("temporarily skipping test")
     def test_control_set(self):
@@ -184,6 +182,7 @@ class TestSystemModel(unittest.TestCase):
         for relation in self.system_model.relations:
             print(relation.description)
             print()
+
 
 if __name__ == "__main__":
     unittest.main()

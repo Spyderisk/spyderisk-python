@@ -8,15 +8,17 @@ DIST_DIR = dist
 
 .PHONY: init clean test lint install help
 
+.SILENT: clean
+
 TEST ?= spyderisk/tests
 
 # create virtual env and install dependencies
 init: $(VENV_DIR)/bin/activate
 
 $(VENV_DIR)/bin/activate: requirements.txt
-	python3 -m venv $(VENV_DIR)
+	@python3 -m venv $(VENV_DIR)
 	$(PIP) install -r requirements.txt
-	touch $(VENV_DIR)/bin/activate
+	@touch $(VENV_DIR)/bin/activate
 
 # clean up
 clean:

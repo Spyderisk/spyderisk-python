@@ -18,14 +18,13 @@
 # <!-- SPDX-FileType: Source code -->
 # <!-- SPDX-FileComment: Original by Stephen Phillips, June 2024 -->
 
-import os
-
 import unittest
 from collections import defaultdict
 from rdflib.term import Literal
 from spyderisk.risk_vector import RiskVector
 
-#@unittest.skip("temporarily skipping domain model test")
+
+# @unittest.skip("temporarily skipping domain model test")
 class TestRiskVector(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -116,6 +115,7 @@ class TestRiskVector(unittest.TestCase):
         # Check that initializing RiskVector with mismatched keys raises ValueError
         with self.assertRaises(ValueError) as context:
             rv = RiskVector(r_levels1, rdf_levels)
+            self.assertIsNotNone(rv)
 
         self.assertEqual(str(context.exception), "Keys in risk_dict and risk_levels must match.")
 
