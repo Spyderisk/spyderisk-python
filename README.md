@@ -26,12 +26,12 @@ it via tools like MinGW or WSL, use `make --version` to verify installation.
 
 **Note**: System and domain models for unit tests are not included in this
 repository. You will need to provide your own models if you want to run the
-unittests. Unit tests models are specified in `test_config.py` as:
+unittests. Unit tests models are specified in *test_config.py* as:
 
 - *TEST_DOMAIN_FILE* and
 - *TEST_SYSTEM_FILE*
 
-Update `test_config.py` accordingly to reflect your own model names.
+Update *test_config.py* accordingly to reflect your own model names.
 
 After setting up your models and ensuring all prerequisites are met, run the
 unit tests using the following command:
@@ -41,7 +41,7 @@ make test
 ```
 
 To run specific tests pass the module name e.g. for
-`TestDomainModel.test_version`:
+*TestDomainModel.test_version*:
 
 ```
 make test TEST=spyderisk.tests.test_domain_model.TestDomainModel.test_version
