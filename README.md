@@ -13,6 +13,17 @@ targets that you can use.
 Make sure you have `make` installed on your system. For Windows, you can install
 it via tools like MinGW or WSL, use `make --version` to verify installation.
 
+### Available `make` targets
+
+- **`make init`**: Create virtual environment and install dependencies
+- **`make clean`**: Clean up unnecessary files
+- **`make test`**: Run tests
+- **`make lint`**: Lint code
+- **`make build`**: Build spyderisk package
+- **`make install`**: Install spyderisk package
+- **`make uninstall`**: Uninstall spyderisk package
+- **`make help`**: Display this help message
+
 Note: System and domain models for unit tests are not included in this
 repository. You will need to provide your own models if you want to run the
 unittests. Unit tests models are specified in `test_config.py` as:
@@ -35,17 +46,6 @@ To run specific tests pass the module name e.g. for
 ```
 make test TEST=spyderisk.tests.test_domain_model.TestDomainModel.test_version
 ```
-
-### Available `make` targets
-
-- **`make init`**: Create virtual environment and install dependencies
-- **`make clean`**: Clean up unnecessary files
-- **`make test`**: Run tests
-- **`make lint`**: Lint code
-- **`make build`**: Build spyderisk package
-- **`make install`**: Install spyderisk package
-- **`make uninstall`**: Uninstall spyderisk package
-- **`make help`**: Display this help message
 
 ## Python spyderisk package structure:
 
