@@ -20,7 +20,7 @@
 # <!-- SPDX-FileType: Source code -->
 # <!-- SPDX-FileComment: Original by Stephen Phillips, June 2024 -->
 
-from rdflib import Namespace, RDF, RDFS, OWL
+from rdflib import Namespace, RDF, RDFS, OWL, DCTERMS
 
 GRAPH = {
     "core": Namespace("http://it-innovation.soton.ac.uk/ontologies/trustworthiness/core#"),
@@ -36,6 +36,8 @@ PREDICATE = {
         "range": RDFS.range,
         "sub_class_of": RDFS.subClassOf,
         "version_info": OWL.versionInfo,
+        "modified": DCTERMS.modified,
+        "created": DCTERMS.created,
 
         "acceptance_justification": GRAPH['core'].acceptanceJustification,
         "affected_by": GRAPH['core'].affectedBy,

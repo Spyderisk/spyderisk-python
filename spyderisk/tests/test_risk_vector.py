@@ -47,8 +47,8 @@ class TestRiskVector(unittest.TestCase):
             self.fail("RiskVector raised ValueError unexpectedly with matching keys.")
 
         expected_str = (
-            "Medium: 20\n"
-            "Low: 50\n"
+            "Medium: 20, "
+            "Low: 50, "
             "Very Low: 800"
         )
         self.assertEqual(str(rv), expected_str)

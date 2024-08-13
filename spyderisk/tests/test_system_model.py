@@ -51,9 +51,34 @@ class TestSystemModel(unittest.TestCase):
         version = self.system_model.domain_version
         self.assertIsNotNone(version)
 
+    def test_risks_valid(self):
+        result = self.system_model.risks_valid
+        self.assertTrue(result, bool)
+
+    def test_is_valid(self):
+        result = self.system_model.is_valid
+        self.assertTrue(result, bool)
+
+    def test_is_validating(self):
+        result = self.system_model.is_validating
+        self.assertFalse(result, bool)
+
+    def test_is_calculating_risk(self):
+        result = self.system_model.is_calculating_risk
+        self.assertFalse(result, bool)
+
+    def test_created(self):
+        created = self.system_model.created
+        self.assertIsNotNone(created)
+
+    def test_modified(self):
+        modified = self.system_model.modified
+        self.assertIsNotNone(modified)
+
     @unittest.skip("temporarily skipping test")
     def test_me(self):
         print("test me")
+        info = self.system_model.info
         breakpoint()
 
     #@unittest.skip("temporarily skipping test")

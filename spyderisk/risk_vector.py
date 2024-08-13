@@ -60,7 +60,7 @@ class RiskVector:
         return self._sorted_levels[0][0]
 
     def __str__(self):
-        return "\n".join([f"{str(level[0])}: {self.risk_dict[level[0]]}" for level in self._sorted_levels])
+        return ", ".join([f"{str(level[0])}: {self.risk_dict[level[0]]}" for level in self._sorted_levels])
 
     def __eq__(self, other):
         if not isinstance(other, RiskVector):

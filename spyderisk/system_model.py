@@ -58,6 +58,8 @@ class SystemModel(ConjunctiveGraph):
                 self.inferred_graph = named_graph
             elif named_graph.identifier.endswith("/ui"):
                 self.ui_graph = named_graph
+            else:
+                self.graph = named_graph
 
         if domain_model_filename:
             self.domain_model = DomainModel(domain_model_filename)
@@ -75,15 +77,20 @@ class SystemModel(ConjunctiveGraph):
             logging.error(f"Domain model version mismatch! Expected: {self.domain_version}, Found: {dm_version}")
             raise ValueError(f"Domain model version mismatch! Expected: {self.domain_version}, Found: {dm_version}")
 
-
     @property
     @cache
     def ontology_uri(self):
-        tmp_rui = None
-        for s in self.subjects(RDF.type, OWL.Ontology):
-            tmp_uri = s
-            break
-        return tmp_uri
+        return next(self.subjects(RDF.type, OWL.Ontology), None)
+
+    @property
+    @cache
+    def created(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['created'])
+
+    @property
+    @cache
+    def modified(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['modified'])
 
     @property
     @cache
@@ -92,6 +99,83 @@ class SystemModel(ConjunctiveGraph):
 
     def label(self, uriref):
         return self.value(subject=uriref, predicate=PREDICATE['label'])
+
+    @property
+    def system_label(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['label'])
+
+    @property
+    def system_comment(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['comment'])
+
+    @property
+    @cache
+    def risk_calculation_mode(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['risk_calculation_mode'])
+
+    @property
+    @cache
+    def has_risk(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['has_risk'])
+
+    @property
+    @cache
+    def risks_valid(self):
+        #result = next(self.objects(None, PREDICATE['risks_valid']), None)
+        result = self.value(URIRef(self.graph.identifier), PREDICATE['risks_valid'])
+        return bool(result)
+
+    @property
+    @cache
+    def is_valid(self):
+        #result = next(self.objects(None, PREDICATE['is_valid']), None)
+        result = self.value(URIRef(self.graph.identifier), PREDICATE['is_valid'])
+        return bool(result)
+
+    @property
+    @cache
+    def is_validating(self):
+        #result = next(self.objects(None, PREDICATE['is_validating']), None)
+        result = self.value(URIRef(self.graph.identifier), PREDICATE['is_validating'])
+        return bool(result)
+
+
+    @property
+    @cache
+    def is_calculating_risk(self):
+        result = next(self.objects(None, PREDICATE['is_calculating_risk']), None)
+        return bool(result)
+
+
+    #TODO
+    # comment ?
+
+    @property
+    def info(self):
+        """ Summary of the system model """
+        summary = (
+                f"System label:          {self.system_label}\n"
+                f"System comment:        {self.system_comment}\n"
+                f"Created:               {self.created}\n"
+                f"Modified:              {self.modified}\n\n"
+
+                f"Domain model:          {self.domain_version}\n"
+                f"Domain label:          {self.domain_model.label}\n\n"
+
+                f"Is valid:              {self.is_valid}\n"
+                f"Assets:                {len(self.assets)}\n"
+                f"Misbehaviour sets:     {len(self.misbehaviour_sets)}\n"
+                f"Threats:               {len(self.threats)}\n"
+                f"Control strategies:    {len(self.control_strategies)}\n"
+                f"Control sets:          {len(self.control_sets)}\n\n"
+
+                f"Risks valid:           {self.risks_valid}\n"
+                f"Risk calculation mode: {self.risk_calculation_mode}\n"
+                f"Has risk:              {self.domain_model.label_uri(self.has_risk)}\n"
+                f"Risk vector:           {self.risk_vector()}\n"
+                f"Overall risk level:    {self.risk_vector().overall_level}\n\n"
+                )
+        return summary
 
     def get_entity(self, uriref):
         if (uriref, PREDICATE['type'], OBJECT['asset']) in self:
@@ -574,7 +658,7 @@ class MisbehaviourSet(Entity):
 
     @property
     def likelihood_level_label(self):
-        return self.system_model.domain_model.level_label(self._likelihood_uri())
+        return self.system_model.domain_model.label_uri(self._likelihood_uri())
 
     @property
     def impact_number(self):
@@ -582,7 +666,7 @@ class MisbehaviourSet(Entity):
 
     @property
     def impact_level_label(self):
-        return self.system_model.domain_model.level_label(self._impact_uri())
+        return self.system_model.domain_model.label_uri(self._impact_uri())
 
     @property
     @cache
@@ -592,7 +676,7 @@ class MisbehaviourSet(Entity):
     @property
     @cache
     def risk_level_label(self):
-        return self.system_model.domain_model.level_label(self._risk_uri())
+        return self.system_model.domain_model.label_uri(self._risk_uri())
 
     def risk_level(self):
         return Level(self.risk_level_label, self.risk_level_value)
@@ -708,7 +792,7 @@ class TrustworthinessAttributeSet(Entity):
 
     @property
     def inferred_level_label(self):
-        return self.system_model.domain_model.level_label(self._inferred_tw_level_uri())
+        return self.system_model.domain_model.label_uri(self._inferred_tw_level_uri())
 
     @property
     def asserted_level_number(self):
@@ -716,7 +800,7 @@ class TrustworthinessAttributeSet(Entity):
 
     @property
     def asserted_level_label(self):
-        return self.system_model.domain_model.level_label(self._inferred_tw_level_uri())
+        return self.system_model.domain_model.label_uri(self._inferred_tw_level_uri())
 
     @property
     def is_external_cause(self):
@@ -789,7 +873,7 @@ class Threat(Entity):
     def likelihood_level_label(self):
         if self._likelihood_uri() is None:
             return "N/A"
-        return self.system_model.domain_model.level_label(self._likelihood_uri())
+        return self.system_model.domain_model.label_uri(self._likelihood_uri())
 
     @property
     def risk_level_number(self):
@@ -801,7 +885,7 @@ class Threat(Entity):
     def risk_level_label(self):
         if self._risk_uri() is None:
             return "N/A"
-        return self.system_model.domain_model.level_label(self._risk_uri())
+        return self.system_model.domain_model.label_uri(self._risk_uri())
 
     @property
     def is_normal_op(self):

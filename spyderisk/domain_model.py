@@ -81,11 +81,7 @@ class DomainModel(ConjunctiveGraph):
     @property
     @cache
     def ontology_uri(self):
-        tmp_rui = None
-        for s in self.subjects(RDF.type, OWL.Ontology):
-            tmp_uri = s
-            break
-        return tmp_uri
+        return next(self.subjects(RDF.type, OWL.Ontology), None)
 
     @property
     @cache
@@ -138,10 +134,10 @@ class DomainModel(ConjunctiveGraph):
     def level_value(self, uriref):
         return int(self.value(subject=uriref, predicate=PREDICATE['level_value']))
 
-    def level_label(self, uriref):
+    def label_uri(self, uriref):
         return self.value(subject=uriref, predicate=PREDICATE['label'])
 
-    def level_comment(self, uriref):
+    def comment_uri(self, uriref):
         return self.value(subject=uriref, predicate=PREDICATE['comment'])
 
     def level_number_inverse(self, number):
