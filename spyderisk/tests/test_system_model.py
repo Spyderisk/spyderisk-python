@@ -20,9 +20,10 @@
 # <!-- SPDX-FileType: Source code -->
 # <!-- SPDX-FileComment: Original by Stephen Phillips, June 2024 -->
 
-import os
-
 import unittest
+
+from spyderisk.config.test_config import TEST_DOMAIN_FILE, TEST_SYSTEM_FILE
+
 from spyderisk.system_model import SystemModel
 from spyderisk.system_model import Relation, TrustworthinessAttributeSet
 from spyderisk.system_model import Asset, ControlSet, MisbehaviourSet, Threat
@@ -33,13 +34,7 @@ from spyderisk.risk_vector import RiskVector
 class TestSystemModel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.domain_model_path = os.path.join(os.path.dirname(__file__),
-                'data', "domain-network-6a7-1-1-Beta-unfiltered.zip")
-                #'data', "domain-network-6a6-1-2.zip")
-        cls.system_model_path = os.path.join(os.path.dirname(__file__),
-                'data', "router_v1-b.nq.gz")
-                #'data', "router.nq.gz")
-        cls.system_model = SystemModel(cls.system_model_path, cls.domain_model_path)
+        cls.system_model = SystemModel(TEST_SYSTEM_FILE, TEST_DOMAIN_FILE)
 
     @classmethod
     def tearDownClass(cls):

@@ -1,4 +1,4 @@
-# Spyderisk Python Implementation
+# Spyderisk System Modeller Python Implementation
 
 This is a Python package for Spyderisk.
 
@@ -13,19 +13,27 @@ targets that you can use.
 Make sure you have `make` installed on your system. For Windows, you can install
 it via tools like MinGW or WSL, use `make --version` to verify installation.
 
-In addition, you will need to provde a validated system model and its
-corresponding domain model. Unittests are assuming that these models are named:
+Note: System and domain models for unit tests are not included in this
+repository. You will need to provide your own models if you want to run the
+unittests. Unit tests models are specified in `test_config.py` as:
 
-- *data/domain-network-6a6-1-2.zip* and
-- *data/router.nq.gz*
+- *TEST_DOMAIN_FILE* and
+- *TEST_SYSTEM_FILE*
 
-Update the unit tests accordingly to reflect the new names.
+Update `test_config.py` accordingly to reflect your own model names.
 
 After setting up your models and ensuring all prerequisites are met, run the
 unit tests using the following command:
 
 ```sh
 make test
+```
+
+To run specific tests pass the module name e.g. for
+`TestDomainModel.test_version`:
+
+```
+make test TEST=spyderisk.tests.test_domain_model.TestDomainModel.test_version
 ```
 
 ### Available `make` targets
@@ -56,6 +64,9 @@ make test
     ├── domain_model.py        # Domain-specific models and logic
     ├── __init__.py            # Initializes the spyderisk package
     ├── system_model.py        # System-specific models and logic
+    ├── risk_vector.py         # Risk vector calculation and logic
+    ├── config/                # Config module
+    │   └── test_config.py     # Unit test configurable data resources
     └── tests/                 # Unit tests for the package
         ├── data/              # Test data for unit tests
         │   ├── domain-network-6a6-1-2.zip*
@@ -64,8 +75,4 @@ make test
         ├── test_domain_model.py  # Tests for domain_model.py
         └── test_system_model.py  # Tests for system_model.py
 ```
-
-Note: The files *domain-network-6a6-1-2.zip* and *router.nq.gz* are example
-domain and system models used for testing. These files are not included in this
-repository. Use your own models instead and update the unit tests accordingly.
 

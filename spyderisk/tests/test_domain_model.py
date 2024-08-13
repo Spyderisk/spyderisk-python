@@ -18,9 +18,10 @@
 # <!-- SPDX-FileType: Source code -->
 # <!-- SPDX-FileComment: Original by Stephen Phillips, June 2024 -->
 
-import os
-
 import unittest
+
+from spyderisk.config.test_config import TEST_DOMAIN_FILE
+
 from spyderisk.domain_model import DomainModel
 from spyderisk.domain_model import TrustworthinessAttribute, TrustworthinessAttributeSet
 from spyderisk.domain_model import Asset, Relation, Threat
@@ -29,10 +30,7 @@ from spyderisk.domain_model import Asset, Relation, Threat
 class TestDomainModel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.domain_model_path = os.path.join(os.path.dirname(__file__),
-            'data', "domain-network-6a7-1-1-Beta-unfiltered.zip")
-            #'data', "domain-network-6a6-1-2.zip")
-        cls.domain_model = DomainModel(cls.domain_model_path)
+        cls.domain_model = DomainModel(TEST_DOMAIN_FILE)
 
     @classmethod
     def tearDownClass(cls):

@@ -8,6 +8,8 @@ DIST_DIR = dist
 
 .PHONY: init clean test lint install help
 
+TEST ?= spyderisk/tests
+
 # create virtual env and install dependencies
 init: $(VENV_DIR)/bin/activate
 
@@ -25,7 +27,12 @@ clean:
 
 # run tests
 test: $(VENV_DIR)/bin/activate
-	$(PYTHON) -m unittest discover -s spyderisk/tests
+	@echo "Running tests: $(TEST)"
+	@if [ -d "$(TEST)" ]; then \
+		$(PYTHON) -m unittest discover -s $(TEST); \
+	else \
+		$(PYTHON) -m unittest $(TEST); \
+	fi
 
 # lint code
 lint: $(VENV_DIR)/bin/activate
