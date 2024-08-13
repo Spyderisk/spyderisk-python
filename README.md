@@ -24,7 +24,7 @@ it via tools like MinGW or WSL, use `make --version` to verify installation.
 - **`make uninstall`**: Uninstall spyderisk package
 - **`make help`**: Display this help message
 
-Note: System and domain models for unit tests are not included in this
+**Note**: System and domain models for unit tests are not included in this
 repository. You will need to provide your own models if you want to run the
 unittests. Unit tests models are specified in `test_config.py` as:
 
@@ -57,7 +57,7 @@ make test TEST=spyderisk.tests.test_domain_model.TestDomainModel.test_version
 ├── LICENSE                    # License file for the project
 ├── Makefile                   # Makefile for build automation tasks
 ├── README.md                  # Main README file with project overview and usage
-├── requirements.txt           # List of dependencies (used for development or in lieu of setup.py)
+├── requirements.txt           # List of dependencies (used for development or in list of setup.py)
 ├── setup.py                   # Script for packaging and installation
 └── spyderisk/                 # Main Python package directory
     ├── core_model.py          # Core functionality of the package
@@ -68,9 +68,9 @@ make test TEST=spyderisk.tests.test_domain_model.TestDomainModel.test_version
     ├── config/                # Config module
     │   └── test_config.py     # Unit test configurable data resources
     └── tests/                 # Unit tests for the package
-        ├── data/              # Test data for unit tests
-        │   ├── domain-network-6a6-1-2.zip*
-        │   └── router.nq.gz*
+        ├── data/              # Test data for unit tests, e.g. domain and system models
+        │   ├── domain-network-xxx.zip*
+        │   └── system-model.nq.gz*
         ├── __init__.py        # Makes tests a package (optional but useful)
         ├── test_domain_model.py  # Tests for domain_model.py
         └── test_system_model.py  # Tests for system_model.py
