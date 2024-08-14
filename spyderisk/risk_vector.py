@@ -63,7 +63,6 @@ class RiskVector:
 
     def __eq__(self, other):
         if not isinstance(other, RiskVector):
-            print("here")
             return NotImplemented
         return (self.risk_dict == other.risk_dict) and (self.risk_levels == other.risk_levels)
 

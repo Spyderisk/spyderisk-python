@@ -73,6 +73,7 @@ class TestSystemModel(unittest.TestCase):
     @unittest.skip("temporarily skipping test")
     def test_me(self):
         print("test me")
+        filtered = self.system_model.filter_misbehaviour_sets(risk_level_value=2)
         breakpoint()
 
     # @unittest.skip("temporarily skipping test")

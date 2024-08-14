@@ -256,7 +256,7 @@ class SystemModel(ConjunctiveGraph):
             return TrustworthinessAttributeSet(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_impact_set']) in self:
             return TrustworthinessImpactSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['trustworthinesslevel']) in self:
+        elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_level']) in self:
             return TrustworthinessLevel(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['validation_pattern']) in self:
             return ValidationPattern(uriref, self)
@@ -266,7 +266,7 @@ class SystemModel(ConjunctiveGraph):
             if self.domain_model.is_asset(obj):
                 return Asset(uriref, self)
             else:
-                print("Not identified OBJECT:", str(obj)[60:], str(uriref)[60:])
+                logging.error(f"Not identified OBJECT: {str(obj)[60:]} {str(uriref)[60:]}")
                 raise KeyError(uriref)
 
     @cache
@@ -341,6 +341,19 @@ class SystemModel(ConjunctiveGraph):
         except ValueError as e:
             logging.error(f"Error creating RiskVector: {e}")
             return None
+
+    def filter_misbehaviour_sets(self, risk_level_value=3):
+        logging.debug(f"filter misbehaviours at level {risk_level_value}")
+
+        filtered = [
+                ms for ms in self.misbehaviour_sets
+                if ms.risk_level_value >= risk_level_value
+                ]
+
+        ms_sorted = sorted(filtered, key=lambda ms: ms.risk_level_value, reverse=True)
+        logging.debug(f"filtered MS {len(ms_sorted)}/{len(self.misbehaviour_sets)}")
+
+        return ms_sorted
 
 
 class Entity():

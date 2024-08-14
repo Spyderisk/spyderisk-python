@@ -145,6 +145,24 @@ class DomainModel(ConjunctiveGraph):
         # TODO: capture the max TW/likelihood level when domain model is loaded
         return 5 - number
 
+    def cost_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['cost_level'])]
+
+    def impact_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['impact_level'])]
+
+    def performance_impact_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['performance_impact_level'])]
+
+    def population_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['population_level'])]
+
+    def risk_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['risk_level'])]
+
+    def tw_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_level'])]
+
 
 class Entity():
     """Superclass of Threat, Misbehaviour, Trustworthiness Attribute, Control Strategy, etc."""

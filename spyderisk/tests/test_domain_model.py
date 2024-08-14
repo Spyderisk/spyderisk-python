@@ -19,6 +19,7 @@
 # <!-- SPDX-FileComment: Original by Stephen Phillips, June 2024 -->
 
 import unittest
+from rdflib import Literal
 
 from spyderisk.config.test_config import TEST_DOMAIN_FILE
 
@@ -40,16 +41,66 @@ class TestDomainModel(unittest.TestCase):
 
     def test_version(self):
         version = self.domain_model.version_info
-        print(f"Domain model version {version}")
+        self.assertIsInstance(version, Literal, "cost label should be an RDF Literal")
         self.assertIsNotNone(version)
+
+    def test_cost_level_range(self):
+        cost_range = self.domain_model.cost_level_range()
+        for rl in cost_range:
+            value = self.domain_model.level_value(rl)
+            self.assertIsInstance(value, int, "cost level value should be an int")
+            label = self.domain_model.label_uri(rl)
+            self.assertIsInstance(label, Literal, "cost label should be an RDF Literal")
+
+    def test_impact_level_range(self):
+        impact_range = self.domain_model.impact_level_range()
+        for rl in impact_range:
+            value = self.domain_model.level_value(rl)
+            self.assertIsInstance(value, int, "impact level value should be an int")
+            label = self.domain_model.label_uri(rl)
+            self.assertIsInstance(label, Literal, "impact label should be an RDF Literal")
+
+    def test_performance_impact_level_range(self):
+        performance_impact_range = self.domain_model.performance_impact_level_range()
+        for rl in performance_impact_range:
+            value = self.domain_model.level_value(rl)
+            self.assertIsInstance(value, int, "performance_impact level value should be an int")
+            label = self.domain_model.label_uri(rl)
+            self.assertIsInstance(label, Literal, "performance_impact label should be an RDF Literal")
+
+    def test_population_level_range(self):
+        population_range = self.domain_model.population_level_range()
+        for rl in population_range:
+            value = self.domain_model.level_value(rl)
+            self.assertIsInstance(value, int, "population level value should be an int")
+            label = self.domain_model.label_uri(rl)
+            self.assertIsInstance(label, Literal, "population label should be an RDF Literal")
+
+    def test_risk_level_range(self):
+        risk_range = self.domain_model.risk_level_range()
+        allowed_values = {"Very Low", "Low", "Medium", "High", "Very High"}
+        for rl in risk_range:
+            value = self.domain_model.level_value(rl)
+            self.assertIsInstance(value, int, "risk level value should be an int")
+            label = self.domain_model.label_uri(rl)
+            self.assertIsInstance(label, Literal, "risk label should be an RDF Literal")
+            self.assertIn(str(label), allowed_values, f"label value '{str(label)}' is not in the allowed set")
+
+    def test_tw_level_range(self):
+        tw_range = self.domain_model.tw_level_range()
+        for rl in tw_range:
+            value = self.domain_model.level_value(rl)
+            self.assertIsInstance(value, int, "tw level value should be an int")
+            label = self.domain_model.label_uri(rl)
+            self.assertIsInstance(label, Literal, "tw label should be an RDF Literal")
 
     def test_label(self):
         label = self.domain_model.label
-        print(f"Domain model label {label}")
-        self.assertIsNotNone(label)
+        self.assertIsInstance(label, Literal, "label should be an RDF Literal")
 
     def test_comment(self):
         comment = self.domain_model.comment
+        self.assertIsInstance(comment, Literal, "comment should be an RDF Literal")
         self.assertIsNotNone(comment)
 
     def test_assets(self):
@@ -140,7 +191,7 @@ class TestDomainModel(unittest.TestCase):
 
             print()
 
-    def test_rel(self):
+    def test_relations(self):
         for rel in self.domain_model.relations:
             print(rel.description)
             print()

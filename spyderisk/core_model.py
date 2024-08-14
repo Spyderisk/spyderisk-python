@@ -193,6 +193,7 @@ OBJECT = {
         "control_inference_pattern": GRAPH['core'].ControlInferencePattern,
         "control_set": GRAPH['core'].ControlSet,
         "control_strategy": GRAPH['core'].ControlStrategy,
+        "cost_level": GRAPH['core'].CostLevel,
         "default_setting": GRAPH['core'].DefaultSetting,
         "distinct_node_group": GRAPH['core'].DistinctNodeGroup,
         "domain_pattern_ui_setting": GRAPH['core'].DomainPatternUISetting,
@@ -211,6 +212,7 @@ OBJECT = {
         "mitigation_set": GRAPH['core'].MitigationSet,
         "node": GRAPH['core'].Node,
         "pattern": GRAPH['core'].Pattern,
+        "performance_impact_level": GRAPH['core'].PerformanceImpactLevel,
         "population_level": GRAPH['core'].PopulationLevel,
         "risk_level": GRAPH['core'].RiskLevel,
         "role": GRAPH['core'].Role,
@@ -225,7 +227,7 @@ OBJECT = {
         "trustworthiness_attribute": GRAPH['core'].TrustworthinessAttribute,
         "trustworthiness_attribute_set": GRAPH['core'].TrustworthinessAttributeSet,
         "trustworthiness_impact_set": GRAPH['core'].TrustworthinessImpactSet,
-        "trustworthinesslevel": GRAPH['core'].TrustworthinessLevel,
+        "trustworthiness_level": GRAPH['core'].TrustworthinessLevel,
         "validation_pattern": GRAPH['core'].ValidationPattern,
         }
 
