@@ -932,13 +932,13 @@ class Threat(Entity):
         for twas in entry_points:
             twis = self.system_model.value(predicate=PREDICATE['affects'], object=twas)
             ms_urirefs.append(self.system_model.value(twis, PREDICATE['affected_by']))
-        return [self.system_model.misbehaviour(ms_uriref) for ms_uriref in ms_urirefs]
+        return [self.system_model.misbehaviour_set(ms_uriref) for ms_uriref in ms_urirefs]
 
     @property
     def secondary_threat_misbehaviour_parents(self):
         """Get all the Misbehaviours that can cause this Threat (disregarding likelihoods), for secondary Threat types"""
         ms_urirefs = self.system_model.objects(self.uriref, PREDICATE['has_secondary_effect_condition'])
-        return [self.system_model.misbehaviour(ms_uriref) for ms_uriref in ms_urirefs]
+        return [self.system_model.misbehaviour_set(ms_uriref) for ms_uriref in ms_urirefs]
 
     @property
     def misbehaviour_parents(self):
