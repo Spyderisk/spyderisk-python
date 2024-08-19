@@ -49,6 +49,7 @@ PREDICATE = {
         "causes_control": GRAPH['core'].causesControl,
         "causes_direct_misbehaviour": GRAPH['core'].causesDirectMisbehaviour,
         "causes_indirect_misbehaviour": GRAPH['core'].causesIndirectMisbehaviour,
+        "causes_misbehaviour": GRAPH['core'].causesMisbehaviour,
         "created_by_pattern": GRAPH['core'].createdByPattern,
         "displayed_at": GRAPH['core'].displayedAt,
         "displayed_at_asset": GRAPH['core'].displayedAtAsset,

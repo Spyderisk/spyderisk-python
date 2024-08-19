@@ -370,6 +370,56 @@ class Threat(Entity):
         comment = self.comment.split(':', 1)[-1].strip()
         return comment[0].upper() + comment[1:]
 
+    @property
+    def category(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_category'])
+
+    @property
+    def frequency(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_frequency'])
+
+    @property
+    def current_risk(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_current_risk'])
+
+    @property
+    def future_risk(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_future_risk'])
+
+    @property
+    def secondary_threat(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_secondary_threat'])
+
+    @property
+    def normal_op(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_normal_op'])
+
+    @property
+    def min(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
+
+    @property
+    def max(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
+
+    #TODO it should return a list?
+    @property
+    def causes_misbehaviour(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['causes_misbehaviour'])
+
+    #TODO it should return a list?
+    @property
+    def entry_point(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_entry_point'])
+
+    @property
+    def applies_to(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['applies_to'])
+
+    @property
+    def threatens(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['threatens'])
+
 
 class TrustworthinessAttribute(Entity):
     def __init__(self, uriref, domain_model):
