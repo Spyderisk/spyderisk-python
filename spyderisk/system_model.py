@@ -170,98 +170,20 @@ class SystemModel(ConjunctiveGraph):
         return summary
 
     def get_entity(self, uriref):
-        if (uriref, PREDICATE['type'], OBJECT['asset']) in self:
-            return Asset(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['asset_group']) in self:
-            return AssetGroup(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['ca_setting']) in self:
-            return CASetting(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['cardinality_constraint']) in self:
-            return CardinalityConstraint(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['compliance_set']) in self:
-            return ComplianceSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['composite_thing']) in self:
-            return CompositeThing(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['construction_pattern']) in self:
-            return ConstructionPattern(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['control']) in self:
-            return Control(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['control_inference_pattern']) in self:
-            return ControlInferencePattern(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['control_set']) in self:
-            return ControlSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['control_strategy']) in self:
-            return ControlStrategy(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['default_setting']) in self:
-            return DefaultSetting(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['distinct_node_group']) in self:
-            return DistinctNodeGroup(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['domain_pattern_ui_setting']) in self:
-            return DomainPatternUISetting(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['impact_level']) in self:
-            return ImpactLevel(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['inferred_node_setting']) in self:
-            return InferredNodeSetting(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['level']) in self:
-            return Level(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['likelihood']) in self:
-            return Likelihood(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['link']) in self:
-            return Link(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['ma_default_setting']) in self:
-            return MADefaultSetting(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['matching_pattern']) in self:
-            return MatchingPattern(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['metadata_pair']) in self:
-            return MetadataPair(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['misbehaviour']) in self:
-            return Misbehaviour(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['misbehaviour_inhibition_set']) in self:
-            return MisbehaviourInhibitionSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['misbehaviour_set']) in self:
+        if (uriref, PREDICATE['type'], OBJECT['misbehaviour_set']) in self:
             return MisbehaviourSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['mitigation_level']) in self:
-            return MitigationLevel(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['mitigation_set']) in self:
-            return MitigationSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['node']) in self:
-            return Node(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['pattern']) in self:
-            return Pattern(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['population_level']) in self:
-            return PopulationLevel(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['risk_level']) in self:
-            return RiskLevel(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['role']) in self:
-            return Role(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['role_link']) in self:
-            return RoleLink(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['root_pattern']) in self:
-            return RootPattern(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['set_member']) in self:
-            return SetMember(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['setting']) in self:
-            return Setting(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['twaa_default_setting']) in self:
-            return TWAADefaultSetting(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['threat']) in self:
             return Threat(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['threat_category']) in self:
-            return ThreatCategory(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['triplet_member']) in self:
-            return TripletMember(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_attribute']) in self:
-            return TrustworthinessAttribute(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['cardinality_constraint']) in self:
+            return Relation(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['control_strategy']) in self:
+            return ControlStrategy(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_attribute_set']) in self:
             return TrustworthinessAttributeSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_impact_set']) in self:
-            return TrustworthinessImpactSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_level']) in self:
-            return TrustworthinessLevel(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['validation_pattern']) in self:
-            return ValidationPattern(uriref, self)
+        elif (uriref, PREDICATE['type'], OBJECT['control_set']) in self:
+            return ControlSet(uriref, self)
         else:
-            # check if it's a domain class
+            # check if it's a domain asset class
             obj = next(self.objects(uriref, PREDICATE['type']), None)
             if self.domain_model.is_asset(obj):
                 return Asset(uriref, self)
