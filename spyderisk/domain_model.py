@@ -302,6 +302,23 @@ class ControlStrategy(Entity):
     def maximum_likelihood_number(self):
         return self.domain_model.level_number_inverse(self.effectiveness_number)
 
+    @property
+    def blocks(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['blocks'])
+
+    @property
+    def min(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
+
+    @property
+    def max(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
+
+    @property
+    def mandatory_cs(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_mandatory_control_set'])
+
+
 
 class Relation(Entity):
     def __init__(self, uriref, domain_model):
@@ -432,10 +449,23 @@ class TrustworthinessAttribute(Entity):
     def comment(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
+    #TODO not sure it has this property?
     @property
     def is_visible(self):
         b = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
         return b
+
+    @property
+    def min(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
+
+    @property
+    def max(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
+
+    @property
+    def located_at(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
 
 
 class TrustworthinessAttributeSet(Entity):
@@ -449,10 +479,20 @@ class TrustworthinessAttributeSet(Entity):
     def comment(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
+    #TODO not sure it has this property?
     @property
     def is_visible(self):
         b = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
         return b
+
+    @property
+    def located_at(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
+
+    @property
+    def twa(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['twa'])
+
 
 
 class AssetGroup:
