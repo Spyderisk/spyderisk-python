@@ -150,6 +150,7 @@ PREDICATE = {
         "links_to": GRAPH['core'].linksTo,
         "located_at": GRAPH['core'].locatedAt,
         "max_cardinality": GRAPH['core'].maxCardinality,
+        "max_iterations": GRAPH['core'].maxIterations,
         "max_of": GRAPH['core'].maxOf,
         "meta_has_asset": GRAPH['core'].metaHasAsset,
         "meta_links_from": GRAPH['core'].metaLinksFrom,

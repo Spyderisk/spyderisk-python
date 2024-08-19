@@ -26,7 +26,7 @@ from spyderisk.config.test_config import TEST_DOMAIN_FILE
 from spyderisk.domain_model import DomainModel
 from spyderisk.domain_model import TrustworthinessAttribute, TrustworthinessAttributeSet
 from spyderisk.domain_model import Asset, Relation, Threat
-from spyderisk.domain_model import RootPattern, MatchingPattern
+from spyderisk.domain_model import RootPattern, MatchingPattern, ConstructionPattern
 
 
 # @unittest.skip("temporarily skipping domain model test")
@@ -39,6 +39,11 @@ class TestDomainModel(unittest.TestCase):
     def tearDownClass(cls):
         cls.domain_model = None
         cls.domain_model_path = None
+
+    def test_construction_patterns(self):
+        cps = self.domain_model.construction_patterns
+        for cp in cps:
+            self.assertIsInstance(cp, ConstructionPattern, "not a construction pattern")
 
     def test_matching_patterns(self):
         mps = self.domain_model.matching_patterns

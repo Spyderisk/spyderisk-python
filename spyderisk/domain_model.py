@@ -56,6 +56,10 @@ class DomainModel(ConjunctiveGraph):
         return Control(uriref, self)
 
     @cache
+    def construction_pattern(self, uriref):
+        return ConstructionPattern(uriref, self)
+
+    @cache
     def control_strategy(self, uriref):
         return ControlStrategy(uriref, self)
 
@@ -115,6 +119,10 @@ class DomainModel(ConjunctiveGraph):
     @property
     def controls(self):
         return [self.control(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['control'])]
+
+    @property
+    def construction_patterns(self):
+        return [self.construction_pattern(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['construction_pattern'])]
 
     @property
     def control_strategies(self):
@@ -417,12 +425,37 @@ class CompositeThing:
 	pass
 
 
-class ConstructionPattern:
-	pass
+class ConstructionPattern(Entity):
+    """ Represents a domain model ConstructionPattern """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
 
+    def __str__(self):
+        return "ConstructionPattern: {} ({})".format(self.label, str(self.uriref))
 
-class ControlInferencePattern:
-	pass
+    @property
+    def comment(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+
+    @property
+    def matching_pattern(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_matching_pattern'])
+
+    @property
+    def priority(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_priority'])
+
+    @property
+    def iterate(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['iterate'])
+
+    @property
+    def max_iterations(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['max_iterations'])
+
+    @property
+    def inferred_link(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_inferred_link'])
 
 
 class ControlSet:
@@ -443,6 +476,48 @@ class DomainPatternUISetting:
 
 class ImpactLevel:
 	pass
+
+
+class InferredLink(Entity):
+    """ Represents a domain model InferredLink """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "MatchingPattern: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def comment(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+
+    @property
+    def matching_pattern(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_matching_pattern'])
+
+    @property
+    def priority(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_priority'])
+
+    @property
+    def iterate(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['iterate'])
+
+    @property
+    def max_iterations(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['max_iterations'])
+
+    @property
+    def inferred_link(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_inferred_link'])
+
+    @property
+    def inferred_node(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_inferred_node'])
+
+    @property
+    def inferred_node_setting(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_inferred_node_setting'])
+
 
 
 class InferredNodeSetting:
@@ -568,11 +643,4 @@ class TrustworthinessImpactSet:
 
 class TrustworthinessLevel:
 	pass
-
-
-class ValidationPattern:
-	pass
-
-
-
 
