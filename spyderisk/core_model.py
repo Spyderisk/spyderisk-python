@@ -163,6 +163,7 @@ PREDICATE = {
         "mitigated_by": GRAPH['core'].mitigatedBy,
         "mitigates": GRAPH['core'].mitigates,
         "parent": GRAPH['core'].parent,
+        "performance_impact": GRAPH['core'].performanceImpact,
         "population": GRAPH['core'].population,
         "position_x": GRAPH['core'].positionX,
         "position_y": GRAPH['core'].positionY,
@@ -178,6 +179,7 @@ PREDICATE = {
         "triggered_by": GRAPH['core'].triggeredBy,
         "triggers": GRAPH['core'].triggers,
         "width": GRAPH['core'].width,
+        "unit_cost": GRAPH['core'].unitCost,
         }
 
 OBJECT = {

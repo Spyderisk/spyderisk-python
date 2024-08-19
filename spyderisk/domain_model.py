@@ -267,6 +267,26 @@ class Control(Entity):
     def is_visible(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
 
+    @property
+    def unit_cost(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['unit_cost'])
+
+    @property
+    def min(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
+
+    @property
+    def max(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
+
+    @property
+    def located_at(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
+
+    @property
+    def performance_impact(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['performance_impact'])
+
 
 class ControlStrategy(Entity):
     def __init__(self, uriref, domain_model):
@@ -362,6 +382,18 @@ class Misbehaviour(Entity):
     @property
     def is_visible(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
+
+    @property
+    def min(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
+
+    @property
+    def max(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
+
+    @property
+    def located_at(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
 
 
 class Threat(Entity):
