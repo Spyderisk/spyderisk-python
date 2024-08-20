@@ -187,6 +187,7 @@ class DomainModel(ConjunctiveGraph):
     def tw_level_range(self):
         return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_level'])]
 
+
 class BaseEntity():
     """
     Superclass of Entity.
@@ -200,7 +201,7 @@ class BaseEntity():
         self.domain_model = domain_model
 
     def __str__(self):
-        return f"Domain entity: ({self.uriref})"
+        return f"Domain base entity: ({self.uriref})"
 
 
 class Entity(BaseEntity):
@@ -271,7 +272,7 @@ class Control(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Control: {} ({})".format(self.label, str(self.uriref))
+        return "Domain Control: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def is_visible(self):
@@ -303,7 +304,7 @@ class ControlStrategy(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Control: {} ({})".format(self.label, str(self.uriref))
+        return "Domain ControlStrategy: {} ({})".format(self.label, str(self.uriref))
 
     def _effectiveness_uriref(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_blocking_effect'])
@@ -350,7 +351,7 @@ class Relation(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Relation: {} ({})".format(self.label, str(self.uriref))
+        return "Domain Relation: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def description(self):
@@ -374,7 +375,7 @@ class Misbehaviour(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Misbehaviour: {} ({})".format(self.label, str(self.uriref))
+        return "Domain Misbehaviour: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def is_visible(self):
@@ -444,12 +445,12 @@ class Threat(Entity):
     def max(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
 
-    #TODO it should return a list?
+    # TODO it should return a list?
     @property
     def causes_misbehaviour(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['causes_misbehaviour'])
 
-    #TODO it should return a list?
+    # TODO it should return a list?
     @property
     def entry_point(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_entry_point'])
@@ -468,7 +469,7 @@ class TrustworthinessAttribute(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Trustworthiness Attribute: {} ({})".format(self.label, str(self.uriref))
+        return "Domain Trustworthiness Attribute: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def is_visible(self):
@@ -488,7 +489,7 @@ class TrustworthinessAttributeSet(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Trustworthiness Attribute Set: ({})".format(str(self.uriref))
+        return "Domain Trustworthiness Attribute Set: ({})".format(str(self.uriref))
 
     #TODO not sure it has this property?
     @property
@@ -511,7 +512,7 @@ class CASetting(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "CASetting: {} ({})".format(self.label, str(self.uriref))
+        return "Domain CASetting: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def has_control(self):
@@ -540,7 +541,7 @@ class ComplianceSet(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "ComplianceSet: {} ({})".format(self.label, str(self.uriref))
+        return "Domain ComplianceSet: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def requires_treatment_of(self):
@@ -553,7 +554,7 @@ class ConstructionPattern(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "ConstructionPattern: {} ({})".format(self.label, str(self.uriref))
+        return "Domain ConstructionPattern: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def matching_pattern(self):
@@ -582,7 +583,7 @@ class ControlSet(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "ControlSet: ({})".format(str(self.uriref))
+        return "Domain ControlSet: ({})".format(str(self.uriref))
 
     @property
     def has_control(self):
@@ -599,7 +600,7 @@ class DistinctNodeGroup(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "DistinctNodeGroup: ({})".format(str(self.uriref))
+        return "Domain DistinctNodeGroup: ({})".format(str(self.uriref))
 
     @property
     def has_node(self):
@@ -612,7 +613,7 @@ class InferredLink(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "MatchingPattern: {} ({})".format(self.label, str(self.uriref))
+        return "Domain InferredLink: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def matching_pattern(self):
@@ -649,7 +650,7 @@ class InferredNodeSetting(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "InferredNodeSetting: ({})".format(str(self.uriref))
+        return "Domain InferredNodeSetting: ({})".format(str(self.uriref))
 
     @property
     def has_node(self):
@@ -670,7 +671,7 @@ class MADefaultSetting(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "MADefaultSetting: ({})".format(str(self.uriref))
+        return "Domain MADefaultSetting: ({})".format(str(self.uriref))
 
     @property
     def located_at(self):
@@ -691,7 +692,7 @@ class MatchingPattern(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "MatchingPattern: {} ({})".format(self.label, str(self.uriref))
+        return "Domain MatchingPattern: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def root_pattern(self):
@@ -704,7 +705,7 @@ class MisbehaviourSet(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "MisbehaviourSet: ({})".format(str(self.uriref))
+        return "Domain MisbehaviourSet: ({})".format(str(self.uriref))
 
     @property
     def has_misbehaviour(self):
@@ -721,7 +722,7 @@ class Node(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Node: ({})".format(str(self.uriref))
+        return "Domain Node: ({})".format(str(self.uriref))
 
     @property
     def meta_asset(self):
@@ -738,7 +739,7 @@ class Role(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Role: () ({})".format(self.label, str(self.uriref))
+        return "Domain Role: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def meta_located_at(self):
@@ -751,7 +752,7 @@ class RoleLink(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "RoleLink: ({})".format(str(self.uriref))
+        return "Domain RoleLink: ({})".format(str(self.uriref))
 
     @property
     def link_type(self):
@@ -772,7 +773,7 @@ class RootPattern(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "RootPattern: ({})".format(str(self.uriref))
+        return "Domain RootPattern: ({})".format(str(self.uriref))
 
     @property
     def key_nodes(self):
@@ -789,7 +790,7 @@ class ThreatCategory(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "RootPattern: {} ({})".format(self.label, str(self.uriref))
+        return "Domain ThreatCategory: {} ({})".format(self.label, str(self.uriref))
 
 
 class TrustworthinessImpactSet(BaseEntity):
@@ -798,7 +799,7 @@ class TrustworthinessImpactSet(BaseEntity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "TrustworthinessImpactSet: ({})".format(str(self.uriref))
+        return "Domain TrustworthinessImpactSet: ({})".format(str(self.uriref))
 
     @property
     def affected_by(self):
@@ -815,7 +816,7 @@ class EntityLevel(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "EntityLevel: {} ({})".format(self.label, str(self.uriref))
+        return "Domain EntityLevel: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def level_value(self):
@@ -828,7 +829,7 @@ class TrustworthinessLevel(EntityLevel):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "TrustworthinessLevel: {} ({})".format(self.label, str(self.uriref))
+        return "Domain TrustworthinessLevel: {} ({})".format(self.label, str(self.uriref))
 
 
 class PopulationLevel(EntityLevel):
@@ -837,7 +838,7 @@ class PopulationLevel(EntityLevel):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "PopulationLevel: {} ({})".format(self.label, str(self.uriref))
+        return "Domain PopulationLevel: {} ({})".format(self.label, str(self.uriref))
 
 
 class RiskLevel(EntityLevel):
@@ -846,7 +847,7 @@ class RiskLevel(EntityLevel):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "RiskLevel: {} ({})".format(self.label, str(self.uriref))
+        return "Domain RiskLevel: {} ({})".format(self.label, str(self.uriref))
 
 
 class ImpactLevel(EntityLevel):
@@ -855,7 +856,7 @@ class ImpactLevel(EntityLevel):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "ImpactLevel: {} ({})".format(self.label, str(self.uriref))
+        return "Domain ImpactLevel: {} ({})".format(self.label, str(self.uriref))
 
 
 class Likelihood(EntityLevel):
@@ -864,5 +865,5 @@ class Likelihood(EntityLevel):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Likelihood: {} ({})".format(self.label, str(self.uriref))
+        return "Domain Likelihood: {} ({})".format(self.label, str(self.uriref))
 
