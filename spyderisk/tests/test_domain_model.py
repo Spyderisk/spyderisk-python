@@ -25,7 +25,7 @@ from spyderisk.config.test_config import TEST_DOMAIN_FILE
 
 from spyderisk.domain_model import DomainModel
 from spyderisk.domain_model import TrustworthinessAttribute, TrustworthinessAttributeSet
-from spyderisk.domain_model import Asset, Relation, Threat
+from spyderisk.domain_model import Asset, Relation, Threat, ThreatCategory, Likelihood
 from spyderisk.domain_model import RootPattern, MatchingPattern, ConstructionPattern
 
 
