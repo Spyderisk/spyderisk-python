@@ -187,10 +187,9 @@ class DomainModel(ConjunctiveGraph):
     def tw_level_range(self):
         return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_level'])]
 
-
-class Entity():
+class BaseEntity():
     """
-    Superclass of Threat, Misbehaviour, Trustworthiness Attribute, Control Strategy, etc.
+    Superclass of Entity.
 
     Attributes:
         uriref (str): The unique reference URI for the entity.
@@ -201,11 +200,30 @@ class Entity():
         self.domain_model = domain_model
 
     def __str__(self):
+        return f"Domain entity: ({self.uriref})"
+
+
+class Entity(BaseEntity):
+    """
+    Superclass of Threat, Misbehaviour, Trustworthiness Attribute, Control Strategy, etc.
+
+    Attributes:
+        uriref (str): The unique reference URI for the entity.
+        domain_model (object): The domain model associated with the entity.
+    """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
         return f"Domain entity: {self.label} ({self.uriref})"
 
     @property
     def label(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
+
+    @property
+    def comment(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
 
 class Asset(Entity):
@@ -226,10 +244,6 @@ class Asset(Entity):
         if label is None:
             label = self.uriref.split("/")[-1]
         return label
-
-    @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
     @property
     def is_assertable(self):
@@ -258,10 +272,6 @@ class Control(Entity):
 
     def __str__(self):
         return "Control: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
     @property
     def is_visible(self):
@@ -294,10 +304,6 @@ class ControlStrategy(Entity):
 
     def __str__(self):
         return "Control: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
     def _effectiveness_uriref(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_blocking_effect'])
@@ -339,17 +345,12 @@ class ControlStrategy(Entity):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_mandatory_control_set'])
 
 
-
 class Relation(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
         return "Relation: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
     @property
     def description(self):
@@ -376,10 +377,6 @@ class Misbehaviour(Entity):
         return "Misbehaviour: {} ({})".format(self.label, str(self.uriref))
 
     @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
-
-    @property
     def is_visible(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
 
@@ -402,10 +399,6 @@ class Threat(Entity):
 
     def __lt__(self, other):
         return self.label < other.label
-
-    @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
     @property
     def short_description(self):
@@ -478,38 +471,24 @@ class TrustworthinessAttribute(Entity):
         return "Trustworthiness Attribute: {} ({})".format(self.label, str(self.uriref))
 
     @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
-
-    #TODO not sure it has this property?
-    @property
     def is_visible(self):
-        b = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-        return b
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
 
     @property
-    def min(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
+    def min_of(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['min_of'])
 
     @property
-    def max(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
-
-    @property
-    def located_at(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
+    def meta_located_at(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['meta_located_at'])
 
 
-class TrustworthinessAttributeSet(Entity):
+class TrustworthinessAttributeSet(BaseEntity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Trustworthiness Attribute Set: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+        return "Trustworthiness Attribute Set: ({})".format(str(self.uriref))
 
     #TODO not sure it has this property?
     @property
@@ -523,28 +502,49 @@ class TrustworthinessAttributeSet(Entity):
 
     @property
     def twa(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['twa'])
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_twa'])
 
 
+class CASetting(BaseEntity):
+    """ Represents a domain model CASetting """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
 
-class AssetGroup:
-    pass
+    def __str__(self):
+        return "CASetting: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def has_control(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_control'])
+
+    @property
+    def meta_located_at(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['meta_located_at'])
+
+    @property
+    def is_assertable(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertable'])
+
+    @property
+    def has_level(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_level'])
+
+    @property
+    def independent_levels(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['independent_levels'])
 
 
-class CASetting:
-	pass
+class ComplianceSet(Entity):
+    """ Represents a domain model ComplianceSet """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
 
+    def __str__(self):
+        return "ComplianceSet: {} ({})".format(self.label, str(self.uriref))
 
-class CardinalityConstraint:
-	pass
-
-
-class ComplianceSet:
-	pass
-
-
-class CompositeThing:
-	pass
+    @property
+    def requires_treatment_of(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['requires_treatment_of'])
 
 
 class ConstructionPattern(Entity):
@@ -554,10 +554,6 @@ class ConstructionPattern(Entity):
 
     def __str__(self):
         return "ConstructionPattern: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
     @property
     def matching_pattern(self):
@@ -580,24 +576,34 @@ class ConstructionPattern(Entity):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_inferred_link'])
 
 
-class ControlSet:
-	pass
+class ControlSet(BaseEntity):
+    """ Represents a domain model ControlSet """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "ControlSet: ({})".format(str(self.uriref))
+
+    @property
+    def has_control(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_control'])
+
+    @property
+    def located_at(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
 
 
-class DefaultSetting:
-	pass
+class DistinctNodeGroup(BaseEntity):
+    """ Represents a domain model DistinctNodeGroup """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
 
+    def __str__(self):
+        return "DistinctNodeGroup: ({})".format(str(self.uriref))
 
-class DistinctNodeGroup:
-	pass
-
-
-class DomainPatternUISetting:
-	pass
-
-
-class ImpactLevel:
-	pass
+    @property
+    def has_node(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_node'])
 
 
 class InferredLink(Entity):
@@ -607,10 +613,6 @@ class InferredLink(Entity):
 
     def __str__(self):
         return "MatchingPattern: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
 
     @property
     def matching_pattern(self):
@@ -641,25 +643,46 @@ class InferredLink(Entity):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_inferred_node_setting'])
 
 
+class InferredNodeSetting(BaseEntity):
+    """ Represents a domain model InferredNodeSetting """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
 
-class InferredNodeSetting:
-	pass
+    def __str__(self):
+        return "InferredNodeSetting: ({})".format(str(self.uriref))
+
+    @property
+    def has_node(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_node'])
+
+    @property
+    def displayed_at_node(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['displayed_at_node'])
+
+    @property
+    def includes_node_in_uri(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['includes_node_in_uri'])
 
 
-class Level:
-	pass
+class MADefaultSetting(BaseEntity):
+    """ Represents a domain model MADefaultSetting """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
 
+    def __str__(self):
+        return "MADefaultSetting: ({})".format(str(self.uriref))
 
-class Likelihood:
-	pass
+    @property
+    def located_at(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
 
+    @property
+    def has_misbehaviour(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_misbehaviour'])
 
-class Link:
-	pass
-
-
-class MADefaultSetting:
-	pass
+    @property
+    def has_level(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_level'])
 
 
 class MatchingPattern(Entity):
@@ -671,65 +694,85 @@ class MatchingPattern(Entity):
         return "MatchingPattern: {} ({})".format(self.label, str(self.uriref))
 
     @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
-
-    @property
     def root_pattern(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_root_pattern'])
 
 
-class MetadataPair:
-	pass
+class MisbehaviourSet(BaseEntity):
+    """ Represents a domain model MisbehaviourSet """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "MisbehaviourSet: ({})".format(str(self.uriref))
+
+    @property
+    def has_misbehaviour(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_misbehaviour'])
+
+    @property
+    def located_at(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
 
 
-class MisbehaviourInhibitionSet:
-	pass
+class Node(BaseEntity):
+    """ Represents a domain model Node """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Node: ({})".format(str(self.uriref))
+
+    @property
+    def meta_asset(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['meta_has_asset'])
+
+    @property
+    def role(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_role'])
 
 
-class MisbehaviourSet:
-	pass
+class Role(Entity):
+    """ Represents a domain model Role """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Role: () ({})".format(self.label, str(self.uriref))
+
+    @property
+    def meta_located_at(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['meta_located_at'])
 
 
-class MitigationLevel:
-	pass
+class RoleLink(BaseEntity):
+    """ Represents a domain model RoleLink """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "RoleLink: ({})".format(str(self.uriref))
+
+    @property
+    def link_type(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['link_type'])
+
+    @property
+    def links_from(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['links_from'])
+
+    @property
+    def links_to(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['links_to'])
 
 
-class MitigationSet:
-	pass
-
-
-class Node:
-	pass
-
-
-class Pattern:
-	pass
-
-
-class PopulationLevel:
-	pass
-
-
-class RiskLevel:
-	pass
-
-
-class Role:
-	pass
-
-
-class RoleLink:
-	pass
-
-
-class RootPattern(Entity):
+class RootPattern(BaseEntity):
     """ Represents a domain model MatchingPattern """
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "RootPattern: {} ({})".format(self.label, str(self.uriref))
+        return "RootPattern: ({})".format(str(self.uriref))
 
     @property
     def key_nodes(self):
@@ -739,30 +782,87 @@ class RootPattern(Entity):
     def links(self):
         return [link for link in self.domain_model.objects(self.uriref, PREDICATE['has_link'])]
 
-class SetMember:
-	pass
+
+class ThreatCategory(Entity):
+    """ Represents a domain model ThreatCategory """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "RootPattern: {} ({})".format(self.label, str(self.uriref))
 
 
-class Setting:
-	pass
+class TrustworthinessImpactSet(BaseEntity):
+    """ Represents a domain model TrustworthinessImpactSet """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "TrustworthinessImpactSet: ({})".format(str(self.uriref))
+
+    @property
+    def affected_by(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['affected_by'])
+
+    @property
+    def affects(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['affects'])
 
 
-class TWAADefaultSetting:
-	pass
+class EntityLevel(Entity):
+    """ Represents a domain model PopulationLevel """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "EntityLevel: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def level_value(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['level_value'])
 
 
-class ThreatCategory:
-	pass
+class TrustworthinessLevel(EntityLevel):
+    """ Represents a domain model TrustworthinessLevel """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "TrustworthinessLevel: {} ({})".format(self.label, str(self.uriref))
 
 
-class TripletMember:
-	pass
+class PopulationLevel(EntityLevel):
+    """ Represents a domain model PopulationLevel """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "PopulationLevel: {} ({})".format(self.label, str(self.uriref))
 
 
-class TrustworthinessImpactSet:
-	pass
+class RiskLevel(EntityLevel):
+    """ Represents a domain model RiskLevel """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "RiskLevel: {} ({})".format(self.label, str(self.uriref))
 
 
-class TrustworthinessLevel:
-	pass
+class ImpactLevel(EntityLevel):
+    """ Represents a domain model ImpactLevel """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "ImpactLevel: {} ({})".format(self.label, str(self.uriref))
+
+
+class Likelihood(EntityLevel):
+    """ Represents a domain model Likelihood """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Likelihood: {} ({})".format(self.label, str(self.uriref))
 

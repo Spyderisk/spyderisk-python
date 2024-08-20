@@ -40,6 +40,15 @@ class TestDomainModel(unittest.TestCase):
         cls.domain_model = None
         cls.domain_model_path = None
 
+    def test_inferred_link(self):
+        pass
+
+    def test_node(self):
+        pass
+
+    def test_role_link(self):
+        pass
+
     def test_construction_patterns(self):
         cps = self.domain_model.construction_patterns
         for cp in cps:
@@ -165,13 +174,6 @@ class TestDomainModel(unittest.TestCase):
         # TrustworthinessAttributeSet
         for twas in twass:
             self.assertIsInstance(twas, TrustworthinessAttributeSet)
-
-    @unittest.skip("temporarily skipping domain model test")
-    def test_threat(self):
-        for threat in sorted(self.domain_model.threats):
-            print(threat.short_description)
-            print("  ", threat.long_description)
-            print()
 
     def test_asset(self):
         for asset in sorted(self.domain_model.assets):
