@@ -27,6 +27,7 @@ from spyderisk.domain_model import DomainModel
 from spyderisk.domain_model import TrustworthinessAttribute, TrustworthinessAttributeSet
 from spyderisk.domain_model import Asset, Relation, Threat, ThreatCategory, Likelihood
 from spyderisk.domain_model import RootPattern, MatchingPattern, ConstructionPattern
+from spyderisk.domain_model import ControlStrategy
 
 
 # @unittest.skip("temporarily skipping domain model test")
@@ -48,6 +49,11 @@ class TestDomainModel(unittest.TestCase):
 
     def test_role_link(self):
         pass
+
+    def test_control_strategies(self):
+        csgs = self.domain_model.control_strategies
+        for csg in csgs:
+            self.assertIsInstance(csg, ControlStrategy, "not a control strategy")
 
     def test_construction_patterns(self):
         cps = self.domain_model.construction_patterns
@@ -207,11 +213,6 @@ class TestDomainModel(unittest.TestCase):
                 print("  Hidden trustworthiness attributes:")
                 print("\n".join(sorted(lines)))
 
-            print()
-
-    def test_relations(self):
-        for rel in self.domain_model.relations:
-            print(rel.description)
             print()
 
     def test_twa(self):

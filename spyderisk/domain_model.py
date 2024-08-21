@@ -221,12 +221,34 @@ class Entity(BaseEntity):
         return f"Domain entity: {self.label} ({self.uriref})"
 
     @property
-    def label(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
+    def label(self) -> Optional[str]:
+        """
+        Retrieve the label associated with the current URI reference.
+
+        Returns:
+            Optional[str]: The label if found, otherwise None.
+        """
+        try:
+            label_value = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
+            return label_value if label_value else None
+        except Exception as e:
+            logging.error(f"Error retrieving label for {self.uriref}: {e}", exc_info=True)
+            return None
 
     @property
-    def comment(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+    def comment(self) -> Optional[str]:
+        """
+        Retrieve the comment associated with the current URI reference.
+
+        Returns:
+            Optional[str]: The comment if found, otherwise None.
+        """
+        try:
+            label_value = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['comment'])
+            return label_value if label_value else None
+        except Exception as e:
+            logging.error(f"Error retrieving comment for {self.uriref}: {e}", exc_info=True)
+            return None
 
 
 class EntityLevel(Entity):
@@ -286,6 +308,15 @@ class RiskLevel(EntityLevel):
         return "Domain RiskLevel: {} ({})".format(self.label, str(self.uriref))
 
 
+class CostLevel(EntityLevel):
+    """ Represents a domain model CostLevel """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Domain CostLevel: {} ({})".format(self.label, str(self.uriref))
+
+
 class ImpactLevel(EntityLevel):
     """ Represents a domain model ImpactLevel """
     def __init__(self, uriref, domain_model):
@@ -293,6 +324,15 @@ class ImpactLevel(EntityLevel):
 
     def __str__(self):
         return "Domain ImpactLevel: {} ({})".format(self.label, str(self.uriref))
+
+
+class PerformanceImpactLevel(EntityLevel):
+    """ Represents a domain model PerformanceImpactLevel """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Domain PerformanceImpactLevel: {} ({})".format(self.label, str(self.uriref))
 
 
 class Likelihood(EntityLevel):
@@ -400,188 +440,6 @@ class Asset(Entity):
         return [self.domain_model.trustworthiness_attribute(uriref) for uriref in twa_urirefs]
 
 
-class Control(Entity):
-    def __init__(self, uriref, domain_model):
-        super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain Control: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def is_visible(self) -> Optional[bool]:
-        """
-        Retrieve the control visibility as a boolean.
-
-        Returns:
-            Optional[bool]: True if 'is_visible' is set, False if not set,
-                            or None if there was an error retrieving the value.
-        """
-        try:
-            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-            return bool(urirdf) if urirdf else None
-        except Exception as e:
-            logging.error(f"Error retrieving control visibility for {self.uriref}: {e}", exc_info=True)
-            return None
-
-    @property
-    def unit_cost(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['unit_cost'])
-
-    @property
-    def min(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
-
-    @property
-    def max(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
-
-    @property
-    def located_at(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
-
-    @property
-    def performance_impact(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['performance_impact'])
-
-
-class ControlStrategy(Entity):
-    def __init__(self, uriref, domain_model):
-        super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain ControlStrategy: {} ({})".format(self.label, str(self.uriref))
-
-    def _effectiveness_uriref(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_blocking_effect'])
-
-    @property
-    def effectiveness_number(self):
-        return self.domain_model.level_number(self._effectiveness_uriref())
-
-    @property
-    def effectiveness_label(self):
-        return self.domain_model.level_label(self._effectiveness_uriref())
-
-    @property
-    def is_current_risk(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_current_risk']) and ("-Runtime" in str(self.uriref) or "-Implementation" in str(self.uriref))
-
-    @property
-    def is_future_risk(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_future_risk'])
-
-    @property
-    def maximum_likelihood_number(self):
-        return self.domain_model.level_number_inverse(self.effectiveness_number)
-
-    @property
-    def blocks(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['blocks'])
-
-    @property
-    def min(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
-
-    @property
-    def max(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
-
-    @property
-    def mandatory_cs(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_mandatory_control_set'])
-
-
-class Relation(Entity):
-    def __init__(self, uriref, domain_model):
-        super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain Relation: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def description(self):
-        return "{}\n  Comment: {}\n  Range:\n    {}\n  Domain:\n    {}".format(
-            self.label, self.comment,
-            "\n    ".join([str(asset.label) for asset in self.range]),
-            "\n    ".join([str(asset.label) for asset in self.domain])
-        )
-
-    @property
-    def range(self):
-        return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['range'])]
-
-    @property
-    def domain(self):
-        return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['domain'])]
-
-
-class Misbehaviour(Entity):
-    def __init__(self, uriref, domain_model):
-        super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain Misbehaviour: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def is_visible(self) -> Optional[bool]:
-        """
-        Retrieve the misbehaviour visibility as a boolean.
-
-        Returns:
-            Optional[bool]: True if 'is_visible' is set, False if not set,
-                            or None if there was an error retrieving the value.
-        """
-        try:
-            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-            return bool(urirdf) if urirdf else None
-        except Exception as e:
-            logging.error(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", exc_info=True)
-            return None
-
-
-    @property
-    def min(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
-
-    @property
-    def max(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
-
-    @property
-    def located_at(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
-
-
-class MisbehaviourSet(BaseEntity):
-    """ Represents a domain model MisbehaviourSet """
-    def __init__(self, uriref, domain_model):
-        super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain MisbehaviourSet: ({})".format(str(self.uriref))
-
-    @property
-    def has_misbehaviour(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_misbehaviour'])
-
-    @property
-    def located_at(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
-
-
-class MatchingPattern(Entity):
-    """ Represents a domain model MatchingPattern """
-    def __init__(self, uriref, domain_model):
-        super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain MatchingPattern: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def root_pattern(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_root_pattern'])
-
-
 class Role(Entity):
     """ Represents a domain model Role """
     def __init__(self, uriref, domain_model):
@@ -606,6 +464,479 @@ class Role(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving meta located assets for {urirdf}: {e}")
+            return None
+
+
+class Control(Entity):
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Domain Control: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def is_visible(self) -> Optional[bool]:
+        """
+        Retrieve the control visibility as a boolean.
+
+        Returns:
+            Optional[bool]: True if 'is_visible' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving control visibility for {self.uriref}: {e}", exc_info=True)
+            return None
+
+    @property
+    def unit_cost(self) -> Optional[CostLevel]:
+        """
+        Retrieve the cost level for the current control.
+
+        Returns:
+            CostLevel: The cost level of the control.
+            None: If no CostLevel is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['unit_cost'])
+            if urirdf:
+                return CostLevel(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving CostLevel for {urirdf}: {e}")
+            return None
+
+    @property
+    def min(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
+
+    @property
+    def max(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
+
+    @property
+    def located_at(self) -> Optional[Asset]:
+        """
+        Retrieve the asset for the current control.
+
+        Returns:
+            Asset: The asset of the control.
+            None: If no Asset is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
+            if urirdf:
+                return Asset(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Asset for {urirdf}: {e}")
+            return None
+
+    @property
+    def performance_impact(self) -> Optional[PerformanceImpactLevel]:
+        """
+        Retrieve the performance impact level for the current control.
+
+        Returns:
+            PerformanceImpactLevel: The PerformanceImpactLevel of the control.
+            None: If no PerformanceImpactLevel is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['performance_impact'])
+            if urirdf:
+                return PerformanceImpactLevel(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving PerformanceImpactLevel for {urirdf}: {e}")
+            return None
+
+
+class ControlSet(BaseEntity):
+    """ Represents a domain model ControlSet """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Domain ControlSet: ({})".format(str(self.uriref))
+
+    @property
+    def has_control(self) -> Optional[Control]:
+        """
+        Retrieve the control for the current control set.
+
+        Returns:
+            Control: The Control of the control set.
+            None: If no control is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_control'])
+            if urirdf:
+                return Control(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving control for cs {urirdf}: {e}")
+            return None
+
+
+    @property
+    def located_at(self) -> Optional[List[Asset]]:
+        """
+        Retrieve the assets list object for the current control set.
+
+        Returns:
+            List[Asset]: The list of asset objects caused by the control set.
+            None: If no assets found for the given URI reference.
+        """
+        try:
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['located_at']))
+            if urirdf_list:
+                return [Asset(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
+        except Exception as e:
+            logging.error(f"Error retrieving located assets for CS {urirdf}: {e}")
+            return None
+
+    @property
+    def coverage_level(self) -> Optional[TrustworthinessLevel]:
+        """
+        Retrieve the trustworthiness level for the current control set.
+
+        Returns:
+            TrustworthinessLevel: The TrustworthinessLevel of the control set.
+            None: If no TrustworthinessLevel is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_blocking_effect'])
+            if urirdf:
+                return TrustworthinessLevel(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving TrustworthinessLevel for {urirdf}: {e}")
+            return None
+
+
+class ControlStrategy(Entity):
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Domain ControlStrategy: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def blocks(self) -> Optional['Threat']:
+        """
+        Retrieve the blocking threat for the current control strategy.
+
+        Returns:
+            Threat: The Threat this control strategy blocks.
+            None: If no blocking threat is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['blocks'])
+            if urirdf:
+                return Threat(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving blocking threat for {urirdf}: {e}")
+            return None
+
+    @property
+    def blocking_effect(self) -> Optional[TrustworthinessLevel]:
+        """
+        Retrieve the trustworthiness level for the current control strategy.
+
+        Returns:
+            TrustworthinessLevel: The TrustworthinessLevel of the control strategy.
+            None: If no TrustworthinessLevel is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_blocking_effect'])
+            if urirdf:
+                return TrustworthinessLevel(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving TrustworthinessLevel for {urirdf}: {e}")
+            return None
+
+    @property
+    def current_risk(self) -> Optional[bool]:
+        """
+        Retrieve the current risk status as a boolean for the current threat.
+
+        Returns:
+            Optional[bool]: True if 'is_current_risk' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_current_risk'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving current risk for {self.uriref}: {e}", exc_info=True)
+            return None
+
+    @property
+    def future_risk(self) -> Optional[bool]:
+        """
+        Retrieve the future risk status as a boolean for the current threat.
+
+        Returns:
+            Optional[bool]: True if 'is_future_risk' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_future_risk'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving future risk for {self.uriref}: {e}", exc_info=True)
+            return None
+
+    @property
+    def min(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
+
+    @property
+    def max(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
+
+    @property
+    def mandatory_cs(self) -> Optional[ControlSet]:
+        """
+        Retrieve the mandatory control set for the current control strategy.
+
+        Returns:
+            ControlSet: The control set this control strategy has.
+            None: If no control set is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_mandatory_control_set'])
+            if urirdf:
+                return ControlSet(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving mandatory control set for {urirdf}: {e}")
+            return None
+
+    @property
+    def optional_cs(self) -> Optional[ControlSet]:
+        """
+        Retrieve the optional control set for the current control strategy.
+
+        Returns:
+            ControlSet: The optional control set this control strategy has.
+            None: If no optional control set is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_optional_cs'])
+            if urirdf:
+                return ControlSet(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving optional control set for {urirdf}: {e}")
+            return None
+
+    def _effectiveness_uriref(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_blocking_effect'])
+
+    @property
+    def effectiveness_number(self):
+        return self.domain_model.level_number(self._effectiveness_uriref())
+
+    @property
+    def effectiveness_label(self):
+        return self.domain_model.level_label(self._effectiveness_uriref())
+    @property
+    def maximum_likelihood_number(self):
+        return self.domain_model.level_number_inverse(self.effectiveness_number)
+
+
+#TODO not sure this exists in DM?
+class Relation(Entity):
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Domain Relation: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def description(self):
+        return "{}\n  Comment: {}\n  Range:\n    {}\n  Domain:\n    {}".format(
+            self.label, self.comment,
+            "\n    ".join([str(asset.label) for asset in self.range]),
+            "\n    ".join([str(asset.label) for asset in self.domain])
+        )
+
+    @property
+    def range(self):
+        return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['range'])]
+
+    @property
+    def domain(self):
+        return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['domain'])]
+
+    """
+    is_assertable
+    is_visible
+    hidden
+    ty_of
+    """
+
+class Misbehaviour(Entity):
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Domain Misbehaviour: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def is_visible(self) -> Optional[bool]:
+        """
+        Retrieve the misbehaviour visibility as a boolean.
+
+        Returns:
+            Optional[bool]: True if 'is_visible' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", exc_info=True)
+            return None
+
+    @property
+    def min(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
+
+    @property
+    def max(self):
+        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
+
+    @property
+    def located_at(self) -> Optional[List[Asset]]:
+        """
+        Retrieve the assets list for the current misbehavour.
+
+        Returns:
+            List[Asset]: The list of asset objects for current misbehaviour.
+            None: If no caused misbehaviour set is found for the given URI reference.
+        """
+        try:
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['located_at']))
+            if urirdf_list:
+                return [Asset(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
+        except Exception as e:
+            logging.error(f"Error retrieving located assets for {urirdf}: {e}")
+            return None
+
+
+class MisbehaviourSet(BaseEntity):
+    """ Represents a domain model MisbehaviourSet """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Domain MisbehaviourSet: ({})".format(str(self.uriref))
+
+    @property
+    def has_misbehaviour(self) -> Optional[Misbehaviour]:
+        """
+        Retrieve the misbehaviour for the current misbehavour set.
+
+        Returns:
+            Misbehavour: The misbehaviour this set.
+            None: If no misbehavour is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_misbehaviour'])
+            if urirdf:
+                return Misbehaviour(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving misbehaviour for {urirdf}: {e}")
+            return None
+
+    @property
+    def located_at(self) -> Optional[Role]:
+        """
+        Retrieve the Role object for the current misbehaviour set.
+
+        Returns:
+            Role: The misbehaviour Role object of the set.
+            None: If no Role is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
+            if urirdf:
+                return Role(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Role for MS {urirdf}: {e}")
+            return None
+
+
+class MatchingPattern(Entity):
+    """ Represents a domain model MatchingPattern """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Domain MatchingPattern: {} ({})".format(self.label, str(self.uriref))
+
+    @property
+    def root_pattern(self) -> Optional['RootPattern']:
+        """
+        Retrieve the root pattern object for the current pattern.
+
+        Returns:
+            RootPattern: The root pattern object of the matching pattern.
+            None: If no root pattern is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_root_pattern'])
+            if urirdf:
+                return RootPattern(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving root pattern for node {urirdf}: {e}")
+            return None
+
+    @property
+    def necessary_node(self) -> Optional['Node']:
+        """
+        Retrieve the Node object for the current matching pattern.
+
+        Returns:
+            Node: The Node object of the pattern.
+            None: If no Node is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_necessary_node'])
+            if urirdf:
+                return Node(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Node for node {urirdf}: {e}")
+            return None
+
+    @property
+    def links(self) -> Optional['RoleLink']:
+        """
+        Retrieve the role link for the current root pattern.
+
+        Returns:
+            RoleLink: The RoleLink this root pattern.
+            None: If no role link is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_link'])
+            if urirdf:
+                return RoleLink(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving role link for {urirdf}: {e}")
             return None
 
 
@@ -729,6 +1060,7 @@ class TrustworthinessAttributeSet(BaseEntity):
         except Exception as e:
             logging.error(f"Error retrieving TWA for {urirdf}: {e}")
             return None
+
 
 class Threat(Entity):
     def __init__(self, uriref, domain_model):
@@ -941,24 +1273,90 @@ class CASetting(BaseEntity):
         return "Domain CASetting: {} ({})".format(self.label, str(self.uriref))
 
     @property
-    def has_control(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_control'])
+    def has_control(self) -> Optional[Control]:
+        """
+        Retrieve the control for the CA setting.
+
+        Returns:
+            Control: The Control of the ca setting.
+            None: If no control is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_control'])
+            if urirdf:
+                return Control(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving control for ca setting {urirdf}: {e}")
+            return None
 
     @property
-    def meta_located_at(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['meta_located_at'])
+    def meta_located_at(self) -> Optional[Asset]:
+        """
+        Retrieve the asset for the CA setting.
+
+        Returns:
+            Asset: The asset of the CA setting.
+            None: If no Asset is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['meta_located_at'])
+            if urirdf:
+                return Asset(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Asset for {urirdf}: {e}")
+            return None
 
     @property
-    def is_assertable(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertable'])
+    def is_assertable(self) -> Optional[bool]:
+        """
+        Retrieve the asset assertibility as a boolean.
+
+        Returns:
+            Optional[bool]: True if 'is_assertable' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertible'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving assertable flag for {self.uriref}: {e}", exc_info=True)
+            return None
 
     @property
-    def has_level(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_level'])
+    def has_level(self) -> Optional[TrustworthinessLevel]:
+        """
+        Retrieve the trustworthiness level for CA setting.
+
+        Returns:
+            TrustworthinessLevel: The TrustworthinessLevel of the CA set.
+            None: If no TrustworthinessLevel is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_level'])
+            if urirdf:
+                return TrustworthinessLevel(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving TrustworthinessLevel for {urirdf}: {e}")
+            return None
 
     @property
-    def independent_levels(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['independent_levels'])
+    def independent_levels(self) -> Optional[bool]:
+        """
+        Retrieve the CA settings independent levels as a boolean.
+
+        Returns:
+            Optional[bool]: True if 'independent_levels' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['independent_levels'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving independent levels flag for {self.uriref}: {e}", exc_info=True)
+            return None
 
 
 class ComplianceSet(Entity):
@@ -970,8 +1368,22 @@ class ComplianceSet(Entity):
         return "Domain ComplianceSet: {} ({})".format(self.label, str(self.uriref))
 
     @property
-    def requires_treatment_of(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['requires_treatment_of'])
+    def requires_treatment_of(self) -> Optional[List[Threat]]:
+        """
+        Retrieve the list of threat objects for the current compliance set.
+
+        Returns:
+            List[Thrat]: The list of threat objects require treatement in this set.
+            None: If no Threats are found for the given URI reference.
+        """
+        try:
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['requires_treatment_of']))
+            if urirdf_list:
+                return [Threat(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
+        except Exception as e:
+            logging.error(f"Error retrieving threats for {self.uriref}: {e}")
+            return None
 
 
 class ConstructionPattern(Entity):
@@ -983,41 +1395,92 @@ class ConstructionPattern(Entity):
         return "Domain ConstructionPattern: {} ({})".format(self.label, str(self.uriref))
 
     @property
-    def matching_pattern(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_matching_pattern'])
+    def matching_pattern(self) -> Optional[MatchingPattern]:
+        """
+        Retrieve the matching pattern object for the current construction pattern.
+
+        Returns:
+            MatchingPattern: The matching pattern object caused by a construction pattern.
+            None: If no matching pattern is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_matching_pattern'])
+            if urirdf:
+                return MatchingPattern(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving matching pattern for {urirdf}: {e}")
+            return None
 
     @property
-    def priority(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_priority'])
+    def priority(self) -> Optional[int]:
+        """
+        Retrieve the priority value as an integer for the construction pattern.
+
+        Returns:
+            Optional[int]: The priority value as an integer if found, otherwise None.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_priority'])
+            return int(urirdf) if urirdf else None
+        except (ValueError, TypeError) as e:
+            logging.error(f"Invalid level value for {self.uriref}: {e}")
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving priority value for {uriref}: {e}")
+            return None
 
     @property
-    def iterate(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['iterate'])
+    def iterate(self) -> Optional[bool]:
+        """
+        Retrieve the iterate status as a boolean.
+
+        Returns:
+            Optional[bool]: True if 'iterate' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['iterate'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving iterate status for {self.uriref}: {e}", exc_info=True)
+            return None
 
     @property
-    def max_iterations(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['max_iterations'])
+    def max_iterations(self) -> Optional[int]:
+        """
+        Retrieve max iterationss value as an integer for the construction pattern.
+
+        Returns:
+            Optional[int]: The max iterations as an integer if found, otherwise None.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['max_iterations'])
+            return int(urirdf) if urirdf else None
+        except (ValueError, TypeError) as e:
+            logging.error(f"Invalid max iteration value for {self.uriref}: {e}")
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving max iteration value for {uriref}: {e}")
+            return None
 
     @property
-    def inferred_link(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_inferred_link'])
+    def inferred_links(self) -> Optional[List['RoleLink']]:
+        """
+        Retrieve the role link objects for the construction pattern.
 
-
-class ControlSet(BaseEntity):
-    """ Represents a domain model ControlSet """
-    def __init__(self, uriref, domain_model):
-        super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain ControlSet: ({})".format(str(self.uriref))
-
-    @property
-    def has_control(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_control'])
-
-    @property
-    def located_at(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
+        Returns:
+            RoleLink list: The role list list of the construction pattern.
+            None: If no role links found for the given URI reference.
+        """
+        try:
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['has_inferred_link']))
+            if urirdf_list:
+                return [RoleLink(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
+        except Exception as e:
+            logging.error(f"Error retrieving role links for {urirdf}: {e}")
+            return None
 
 
 class DistinctNodeGroup(BaseEntity):
@@ -1029,45 +1492,22 @@ class DistinctNodeGroup(BaseEntity):
         return "Domain DistinctNodeGroup: ({})".format(str(self.uriref))
 
     @property
-    def has_node(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_node'])
+    def nodes(self) -> Optional[List['Node']]:
+        """
+        Retrieve the node list for the current group.
 
-
-class InferredLink(Entity):
-    """ Represents a domain model InferredLink """
-    def __init__(self, uriref, domain_model):
-        super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain InferredLink: {} ({})".format(self.label, str(self.uriref))
-
-    @property
-    def matching_pattern(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_matching_pattern'])
-
-    @property
-    def priority(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_priority'])
-
-    @property
-    def iterate(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['iterate'])
-
-    @property
-    def max_iterations(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['max_iterations'])
-
-    @property
-    def inferred_link(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_inferred_link'])
-
-    @property
-    def inferred_node(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_inferred_node'])
-
-    @property
-    def inferred_node_setting(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_inferred_node_setting'])
+        Returns:
+            List[Node]: The list of node objects for current group.
+            None: If no node list is found for the given URI reference.
+        """
+        try:
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['has_node']))
+            if urirdf_list:
+                return [Node(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
+        except Exception as e:
+            logging.error(f"Error retrieving nodes for {urirdf}: {e}")
+            return None
 
 
 class InferredNodeSetting(BaseEntity):
@@ -1079,16 +1519,137 @@ class InferredNodeSetting(BaseEntity):
         return "Domain InferredNodeSetting: ({})".format(str(self.uriref))
 
     @property
-    def has_node(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_node'])
+    def node(self) -> Optional[Role]:
+        """
+        Retrieve the Node object for the setting.
+
+        Returns:
+            Node: The Node object of the node.
+            None: If no Node is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_node'])
+            if urirdf:
+                return Node(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Node for setting {urirdf}: {e}")
+            return None
 
     @property
-    def displayed_at_node(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['displayed_at_node'])
+    def displayed_at_node(self) -> Optional[Role]:
+        """
+        Retrieve the Node object for the setting.
+
+        Returns:
+            Node: The Node object of the node.
+            None: If no Node is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['displayed_at_node'])
+            if urirdf:
+                return Node(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Node for setting {urirdf}: {e}")
+            return None
 
     @property
-    def includes_node_in_uri(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['includes_node_in_uri'])
+    def includes_node_in_uri(self) -> Optional[List['Node']]:
+        """
+        Retrieve the node list for the current inferred node setting.
+
+        Returns:
+            List[Node]: The list of node objects for current setting.
+            None: If no node list is found for the given URI reference.
+        """
+        try:
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['includes_node_in_uri']))
+            if urirdf_list:
+                return [Node(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
+        except Exception as e:
+            logging.error(f"Error retrieving nodes for {urirdf}: {e}")
+            return None
+
+class TWAADefaultSetting(BaseEntity):
+    """ Represents a domain model TWAADefaultSetting """
+    def __init__(self, uriref, domain_model):
+        super().__init__(uriref, domain_model)
+
+    def __str__(self):
+        return "Domain TWAADefaultSetting: ({})".format(str(self.uriref))
+
+    @property
+    def located_at(self) -> Optional[Asset]:
+        """
+        Retrieve the asset for the TWADefault setting.
+
+        Returns:
+            Asset: The asset of the TWADefault setting.
+            None: If no Asset is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['meta_located_at'])
+            if urirdf:
+                return Asset(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Asset for {urirdf}: {e}")
+            return None
+
+    @property
+    def has_level(self) -> Optional[ImpactLevel]:
+        """
+        Retrieve the impact level for the TWADefaultSetting.
+
+        Returns:
+            ImpactLevel: The ImpactLevel of the MADefault setting.
+            None: If no ImpactLevel is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_level'])
+            if urirdf:
+                return ImpactLevel(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving ImpactLevel for {urirdf}: {e}")
+            return None
+
+    @property
+    def independent_levels(self) -> Optional[bool]:
+        """
+        Retrieve the TWAA settings independent levels as a boolean.
+
+        Returns:
+            Optional[bool]: True if 'independent_levels' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['independent_levels'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving independent levels flag for {self.uriref}: {e}", exc_info=True)
+            return None
+
+    @property
+    def twa(self) -> Optional[TrustworthinessAttribute]:
+        """
+        Retrieve the TWA for the current trustworthiness impact set.
+
+        Returns:
+            TrustworthinessAttribute: The TWA for this trustworthiness impact set.
+            None: If no TWA is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_twa'])
+            if urirdf:
+                return TrustworthinessAttribute(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving TWA for {urirdf}: {e}")
+            return None
+
 
 
 class MADefaultSetting(BaseEntity):
@@ -1100,16 +1661,58 @@ class MADefaultSetting(BaseEntity):
         return "Domain MADefaultSetting: ({})".format(str(self.uriref))
 
     @property
-    def located_at(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
+    def located_at(self) -> Optional[Asset]:
+        """
+        Retrieve the asset for the MADefault setting.
+
+        Returns:
+            Asset: The asset of the MADefault setting.
+            None: If no Asset is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['located_at'])
+            if urirdf:
+                return Asset(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Asset for {urirdf}: {e}")
+            return None
 
     @property
-    def has_misbehaviour(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_misbehaviour'])
+    def has_misbehaviour(self) -> Optional[Misbehaviour]:
+        """
+        Retrieve the misbehaviour for the current MADefaultSetting.
+
+        Returns:
+            Misbehavour: The misbehaviour this set.
+            None: If no misbehavour is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_misbehaviour'])
+            if urirdf:
+                return Misbehaviour(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving misbehaviour for {urirdf}: {e}")
+            return None
 
     @property
-    def has_level(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_level'])
+    def has_level(self) -> Optional[ImpactLevel]:
+        """
+        Retrieve the impact level for the MADefaultSetting.
+
+        Returns:
+            ImpactLevel: The ImpactLevel of the MADefault setting.
+            None: If no ImpactLevel is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_level'])
+            if urirdf:
+                return ImpactLevel(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving ImpactLevel for {urirdf}: {e}")
+            return None
 
 
 class Node(BaseEntity):
@@ -1121,12 +1724,41 @@ class Node(BaseEntity):
         return "Domain Node: ({})".format(str(self.uriref))
 
     @property
-    def meta_asset(self):
+    def meta_asset(self) -> Optional[Asset]:
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['meta_has_asset'])
+        """
+        Retrieve the asset for the current node.
+
+        Returns:
+            Asset: The asset of the node.
+            None: If no Asset is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['meta_has_asset'])
+            if urirdf:
+                return Asset(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Asset for node {urirdf}: {e}")
+            return None
 
     @property
-    def role(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_role'])
+    def role(self) -> Optional[Role]:
+        """
+        Retrieve the Role object for the current node.
+
+        Returns:
+            Role: The Role object of the node.
+            None: If no Role is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_role'])
+            if urirdf:
+                return Role(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Role for node {urirdf}: {e}")
+            return None
 
 
 class RoleLink(BaseEntity):
@@ -1159,12 +1791,55 @@ class RootPattern(BaseEntity):
         return "Domain RootPattern: ({})".format(str(self.uriref))
 
     @property
-    def key_nodes(self):
-        return [node for node in self.domain_model.objects(self.uriref, PREDICATE['has_key_node'])]
+    def label(self) -> Optional[str]:
+        """
+        Retrieve the label associated with the current URI reference.
+
+        Returns:
+            Optional[str]: The label if found, otherwise None.
+        """
+        try:
+            label_value = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['label'])
+            return label_value if label_value else None
+        except Exception as e:
+            logging.error(f"Error retrieving label for {self.uriref}: {e}", exc_info=True)
+            return None
 
     @property
-    def links(self):
-        return [link for link in self.domain_model.objects(self.uriref, PREDICATE['has_link'])]
+    def key_nodes(self) -> Optional[List[Node]]:
+        """
+        Retrieve the node list for the current root pattern.
+
+        Returns:
+            List[Node]: The list of node objects for current root pattern.
+            None: If no node list is found for the given URI reference.
+        """
+        try:
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['has_key_node']))
+            if urirdf_list:
+                return [Node(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
+        except Exception as e:
+            logging.error(f"Error retrieving nodes for {urirdf}: {e}")
+            return None
+
+    @property
+    def links(self) -> Optional[RoleLink]:
+        """
+        Retrieve the role link for the current root pattern.
+
+        Returns:
+            RoleLink: The RoleLink this root pattern.
+            None: If no role link is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_link'])
+            if urirdf:
+                return RoleLink(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving role link for {urirdf}: {e}")
+            return None
 
 
 class TrustworthinessImpactSet(BaseEntity):
@@ -1176,11 +1851,39 @@ class TrustworthinessImpactSet(BaseEntity):
         return "Domain TrustworthinessImpactSet: ({})".format(str(self.uriref))
 
     @property
-    def affected_by(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['affected_by'])
+    def affected_by(self) -> Optional[Misbehaviour]:
+        """
+        Retrieve the misbehaviour for the current trustworthiness impact set.
+
+        Returns:
+            Misbehavour: The misbehaviour this trustworthiness impact set.
+            None: If no misbehavour is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['affected_by'])
+            if urirdf:
+                return Misbehaviour(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving misbehaviour for {urirdf}: {e}")
+            return None
 
     @property
-    def affects(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['affects'])
+    def affects(self) -> Optional[TrustworthinessAttribute]:
+        """
+        Retrieve the TWA for the current trustworthiness impact set.
+
+        Returns:
+            TrustworthinessAttribute: The TWA for this trustworthiness impact set.
+            None: If no TWA is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['affects'])
+            if urirdf:
+                return TrustworthinessAttribute(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving TWA for {urirdf}: {e}")
+            return None
 
 
