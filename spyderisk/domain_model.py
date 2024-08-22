@@ -886,6 +886,24 @@ class MatchingPattern(Entity):
         return "Domain MatchingPattern: {} ({})".format(self.label, str(self.uriref))
 
     @property
+    def distinct_node_group(self) -> Optional['DistinctNodeGroup']:
+        """
+        Retrieve the distinct node group object for the current pattern.
+
+        Returns:
+            DistinctNodeGroup: The DistinctNodeGroup object of the matching pattern.
+            None: If no node group is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_distinct_node_group'])
+            if urirdf:
+                return DistinctNodeGroup(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving distinct node group for node {urirdf}: {e}")
+            return None
+
+    @property
     def root_pattern(self) -> Optional['RootPattern']:
         """
         Retrieve the root pattern object for the current pattern.
@@ -904,7 +922,7 @@ class MatchingPattern(Entity):
             return None
 
     @property
-    def necessary_node(self) -> Optional['Node']:
+    def necessary_nodes(self) -> Optional[List['Node']]:
         """
         Retrieve the Node object for the current matching pattern.
 
@@ -913,16 +931,34 @@ class MatchingPattern(Entity):
             None: If no Node is found for the given URI reference.
         """
         try:
-            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_necessary_node'])
-            if urirdf:
-                return Node(urirdf, self.domain_model)
-            return None
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['has_necessary_node']))
+            if urirdf_list:
+                return [Node(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
         except Exception as e:
             logging.error(f"Error retrieving Node for node {urirdf}: {e}")
             return None
 
     @property
-    def links(self) -> Optional['RoleLink']:
+    def prohibited_nodes(self) -> Optional[List['Node']]:
+        """
+        Retrieve the prohibited Node list for the current matching pattern.
+
+        Returns:
+            Node: The prohibited Node object of the pattern.
+            None: If no Node is found for the given URI reference.
+        """
+        try:
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['has_prohibited_node']))
+            if urirdf_list:
+                return [Node(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
+        except Exception as e:
+            logging.error(f"Error retrieving prohibited Node for node {urirdf}: {e}")
+            return None
+
+    @property
+    def links(self) -> Optional[List['RoleLink']]:
         """
         Retrieve the role link for the current root pattern.
 
@@ -931,10 +967,28 @@ class MatchingPattern(Entity):
             None: If no role link is found for the given URI reference.
         """
         try:
-            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_link'])
-            if urirdf:
-                return RoleLink(urirdf, self.domain_model)
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['has_link']))
+            if urirdf_list:
+                return [RoleLink(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
+        except Exception as e:
+            logging.error(f"Error retrieving role link for {urirdf}: {e}")
             return None
+
+    @property
+    def prohibited_links(self) -> Optional[List['RoleLink']]:
+        """
+        Retrieve the role link for the current root pattern.
+
+        Returns:
+            RoleLink: The RoleLink this root pattern.
+            None: If no role link is found for the given URI reference.
+        """
+        try:
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['has_prohibited_link']))
+            if urirdf_list:
+                return [RoleLink(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
         except Exception as e:
             logging.error(f"Error retrieving role link for {urirdf}: {e}")
             return None
@@ -1833,10 +1887,10 @@ class RootPattern(BaseEntity):
             None: If no role link is found for the given URI reference.
         """
         try:
-            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_link'])
-            if urirdf:
-                return RoleLink(urirdf, self.domain_model)
-            return None
+            urirdf_list = list(self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['has_link']))
+            if urirdf_list:
+                return [RoleLink(urirdf, self.domain_model) for urirdf in urirdf_list]
+            return []
         except Exception as e:
             logging.error(f"Error retrieving role link for {urirdf}: {e}")
             return None
