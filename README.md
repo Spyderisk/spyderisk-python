@@ -1,6 +1,8 @@
 # Spyderisk System Modeller Python Implementation
 
-This is a Python package for Spyderisk.
+This Python package parses Spyderisk domain and system model NQ files and
+represents the entities from these models as Python objects, offering a static,
+read-only view of a system or domain model.
 
 ## Build and Test Instructions
 
@@ -22,6 +24,7 @@ it via tools like MinGW or WSL, use `make --version` to verify installation.
 - **`make build`**: Build spyderisk package
 - **`make install`**: Install spyderisk package
 - **`make uninstall`**: Uninstall spyderisk package
+- **`make uml`**: Create UML diagrams
 - **`make help`**: Display this help message
 
 **Note**: System and domain models for unit tests are not included in this

@@ -6,7 +6,7 @@ PACKAGE_NAME = spyderisk
 VERSION = 0.1.0
 DIST_DIR = dist
 
-.PHONY: init clean test lint install help
+.PHONY: init clean test lint install uml help
 
 .SILENT: clean
 
@@ -55,8 +55,13 @@ install: build
 # uninstall package
 uninstall:
 	@echo "uninstalling spyderisk..."
-	pip uninstall spyderisk 
+	pip uninstall spyderisk
 	@echo "package spyderisk uninstalled successfully"
+
+# create uml diagrams
+uml:
+	@echo "creating UML diagrams"
+	pyreverse -o png -p $(PACKAGE_NAME) -A $(PACKAGE_NAME) -d "docs/images"
 
 # show help
 help:
@@ -68,5 +73,6 @@ help:
 	@echo "  build    - Build spyderisk package"
 	@echo "  install  - Install spyderisk package"
 	@echo "  uninstall - Uninstall spyderisk package"
+	@echo "  uml      - Create UML diagrams"
 	@echo "  help     - Display this help message"
 
