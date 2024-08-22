@@ -1,4 +1,4 @@
-# Spyderisk System Modeller Python Implementation
+# Spyderisk Python Package
 
 This Python package parses Spyderisk domain and system model NQ files and
 represents the entities from these models as Python objects, offering a static,
