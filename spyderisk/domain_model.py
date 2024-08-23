@@ -257,7 +257,7 @@ class EntityLevel(Entity):
         super().__init__(uriref, domain_model)
 
     def __str__(self):
-        return "Domain EntityLevel: {} ({})".format(self.label, str(self.uriref))
+        return "Domain {}: {}".format(self.label, self.level_value)
 
     @property
     def level_value(self) -> Optional[int]:
@@ -272,12 +272,12 @@ class EntityLevel(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['level_value'])
-            return int(urirdf) if urirdf else None
+            return int(urirdf) if urirdf is not None else None
         except (ValueError, TypeError) as e:
             logging.error(f"Invalid level value for {self.uriref}: {e}")
             return None
         except Exception as e:
-            logging.error(f"Error retrieving level value for {uriref}: {e}")
+            logging.error(f"Error retrieving level value for {self.uriref}: {e}")
             return None
 
 
@@ -286,17 +286,11 @@ class TrustworthinessLevel(EntityLevel):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
-    def __str__(self):
-        return "Domain TrustworthinessLevel: {} ({})".format(self.label, str(self.uriref))
-
 
 class PopulationLevel(EntityLevel):
     """ Represents a domain model PopulationLevel """
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain PopulationLevel: {} ({})".format(self.label, str(self.uriref))
 
 
 class RiskLevel(EntityLevel):
@@ -304,17 +298,11 @@ class RiskLevel(EntityLevel):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
-    def __str__(self):
-        return "Domain RiskLevel: {} ({})".format(self.label, str(self.uriref))
-
 
 class CostLevel(EntityLevel):
     """ Represents a domain model CostLevel """
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain CostLevel: {} ({})".format(self.label, str(self.uriref))
 
 
 class ImpactLevel(EntityLevel):
@@ -322,26 +310,17 @@ class ImpactLevel(EntityLevel):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
-    def __str__(self):
-        return "Domain ImpactLevel: {} ({})".format(self.label, str(self.uriref))
-
 
 class PerformanceImpactLevel(EntityLevel):
     """ Represents a domain model PerformanceImpactLevel """
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
-    def __str__(self):
-        return "Domain PerformanceImpactLevel: {} ({})".format(self.label, str(self.uriref))
-
 
 class Likelihood(EntityLevel):
     """ Represents a domain model Likelihood """
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
-
-    def __str__(self):
-        return "Domain Likelihood: {} ({})".format(self.label, str(self.uriref))
 
 
 class ThreatCategory(Entity):
@@ -419,7 +398,7 @@ class Asset(Entity):
                 return [Asset(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving asset parents for {urirdf}: {e}")
+            logging.error(f"Error retrieving asset parents for {self.uriref}: {e}")
             return None
 
     @property
@@ -463,7 +442,7 @@ class Role(Entity):
                 return [Asset(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving meta located assets for {urirdf}: {e}")
+            logging.error(f"Error retrieving meta located assets for {self.uriref}: {e}")
             return None
 
 
@@ -505,7 +484,7 @@ class Control(Entity):
                 return CostLevel(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving CostLevel for {urirdf}: {e}")
+            logging.error(f"Error retrieving CostLevel for {self.uriref}: {e}")
             return None
 
     @property
@@ -531,7 +510,7 @@ class Control(Entity):
                 return Asset(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Asset for {urirdf}: {e}")
+            logging.error(f"Error retrieving Asset for {self.uriref}: {e}")
             return None
 
     @property
@@ -549,7 +528,7 @@ class Control(Entity):
                 return PerformanceImpactLevel(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving PerformanceImpactLevel for {urirdf}: {e}")
+            logging.error(f"Error retrieving PerformanceImpactLevel for {self.uriref}: {e}")
             return None
 
 
@@ -576,9 +555,8 @@ class ControlSet(BaseEntity):
                 return Control(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving control for cs {urirdf}: {e}")
+            logging.error(f"Error retrieving control for cs {self.uriref}: {e}")
             return None
-
 
     @property
     def located_at(self) -> Optional[List[Asset]]:
@@ -595,7 +573,7 @@ class ControlSet(BaseEntity):
                 return [Asset(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving located assets for CS {urirdf}: {e}")
+            logging.error(f"Error retrieving located assets for CS {self.uriref}: {e}")
             return None
 
     @property
@@ -613,7 +591,7 @@ class ControlSet(BaseEntity):
                 return TrustworthinessLevel(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving TrustworthinessLevel for {urirdf}: {e}")
+            logging.error(f"Error retrieving TrustworthinessLevel for {self.uriref}: {e}")
             return None
 
 
@@ -639,7 +617,7 @@ class ControlStrategy(Entity):
                 return Threat(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving blocking threat for {urirdf}: {e}")
+            logging.error(f"Error retrieving blocking threat for {self.uriref}: {e}")
             return None
 
     @property
@@ -657,7 +635,7 @@ class ControlStrategy(Entity):
                 return TrustworthinessLevel(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving TrustworthinessLevel for {urirdf}: {e}")
+            logging.error(f"Error retrieving TrustworthinessLevel for {self.uriref}: {e}")
             return None
 
     @property
@@ -715,7 +693,7 @@ class ControlStrategy(Entity):
                 return ControlSet(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving mandatory control set for {urirdf}: {e}")
+            logging.error(f"Error retrieving mandatory control set for {self.uriref}: {e}")
             return None
 
     @property
@@ -733,7 +711,7 @@ class ControlStrategy(Entity):
                 return ControlSet(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving optional control set for {urirdf}: {e}")
+            logging.error(f"Error retrieving optional control set for {self.uriref}: {e}")
             return None
 
     def _effectiveness_uriref(self):
@@ -746,12 +724,13 @@ class ControlStrategy(Entity):
     @property
     def effectiveness_label(self):
         return self.domain_model.level_label(self._effectiveness_uriref())
+
     @property
     def maximum_likelihood_number(self):
         return self.domain_model.level_number_inverse(self.effectiveness_number)
 
 
-#TODO not sure this exists in DM?
+# TODO not sure this exists in DM?
 class Relation(Entity):
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
@@ -768,6 +747,60 @@ class Relation(Entity):
         )
 
     @property
+    def is_assertable(self) -> Optional[bool]:
+        """
+        Retrieve the asset assertibility as a boolean.
+
+        Returns:
+            Optional[bool]: True if 'is_assertable' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertible'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving assertable flag for {self.uriref}: {e}", exc_info=True)
+            return None
+
+    @property
+    def is_visible(self) -> Optional[bool]:
+        """
+        Retrieve the misbehaviour visibility as a boolean.
+
+        Returns:
+            Optional[bool]: True if 'is_visible' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", exc_info=True)
+            return None
+
+    @property
+    def hidden(self) -> Optional[bool]:
+        """
+        Retrieve the misbehaviour visibility as a boolean.
+
+        Returns:
+            Optional[bool]: True if 'is_hidden' is set, False if not set,
+                            or None if there was an error retrieving the value.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['hidden'])
+            return bool(urirdf) if urirdf else None
+        except Exception as e:
+            logging.error(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", exc_info=True)
+            return None
+
+    # TODO
+    """ the type is of type owl#ObjectProperty which has
+    domain -> domain#Host (Asset?)
+    range -> domain#Host (Asset?)
+    """
+
+    @property
     def range(self):
         return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['range'])]
 
@@ -775,12 +808,6 @@ class Relation(Entity):
     def domain(self):
         return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['domain'])]
 
-    """
-    is_assertable
-    is_visible
-    hidden
-    ty_of
-    """
 
 class Misbehaviour(Entity):
     def __init__(self, uriref, domain_model):
@@ -828,7 +855,7 @@ class Misbehaviour(Entity):
                 return [Asset(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving located assets for {urirdf}: {e}")
+            logging.error(f"Error retrieving located assets for {self.uriref}: {e}")
             return None
 
 
@@ -855,7 +882,7 @@ class MisbehaviourSet(BaseEntity):
                 return Misbehaviour(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving misbehaviour for {urirdf}: {e}")
+            logging.error(f"Error retrieving misbehaviour for {self.uriref}: {e}")
             return None
 
     @property
@@ -873,7 +900,7 @@ class MisbehaviourSet(BaseEntity):
                 return Role(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Role for MS {urirdf}: {e}")
+            logging.error(f"Error retrieving Role for MS {self.uriref}: {e}")
             return None
 
 
@@ -884,6 +911,17 @@ class MatchingPattern(Entity):
 
     def __str__(self):
         return "Domain MatchingPattern: {} ({})".format(self.label, str(self.uriref))
+
+    def summary(self):
+        summary = f"""{self.__str__()}
+        DNG: {self.distinct_node_group}
+        RootPattern: {self.root_pattern}
+        NecessaryNodes: {len(self.necessary_nodes)}
+        ProhibitedNodes: {len(self.prohibited_nodes)}
+        Links: {len(self.links)}
+        ProhibitedLinks: {len(self.links)}
+        """
+        return summary
 
     @property
     def distinct_node_group(self) -> Optional['DistinctNodeGroup']:
@@ -900,7 +938,7 @@ class MatchingPattern(Entity):
                 return DistinctNodeGroup(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving distinct node group for node {urirdf}: {e}")
+            logging.error(f"Error retrieving distinct node group for node {self.uriref}: {e}")
             return None
 
     @property
@@ -918,7 +956,7 @@ class MatchingPattern(Entity):
                 return RootPattern(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving root pattern for node {urirdf}: {e}")
+            logging.error(f"Error retrieving root pattern for node {self.uriref}: {e}")
             return None
 
     @property
@@ -936,7 +974,7 @@ class MatchingPattern(Entity):
                 return [Node(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving Node for node {urirdf}: {e}")
+            logging.error(f"Error retrieving Node for node {self.uriref}: {e}")
             return None
 
     @property
@@ -954,7 +992,7 @@ class MatchingPattern(Entity):
                 return [Node(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving prohibited Node for node {urirdf}: {e}")
+            logging.error(f"Error retrieving prohibited Node for node {self.uriref}: {e}")
             return None
 
     @property
@@ -972,7 +1010,7 @@ class MatchingPattern(Entity):
                 return [RoleLink(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving role link for {urirdf}: {e}")
+            logging.error(f"Error retrieving role link for {self.uriref}: {e}")
             return None
 
     @property
@@ -990,7 +1028,7 @@ class MatchingPattern(Entity):
                 return [RoleLink(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving role link for {urirdf}: {e}")
+            logging.error(f"Error retrieving role link for {self.uriref}: {e}")
             return None
 
 
@@ -1042,15 +1080,15 @@ class TrustworthinessAttribute(Entity):
                 return [Asset(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving meta located assets for {urirdf}: {e}")
+            logging.error(f"Error retrieving meta located assets for {self.uriref}: {e}")
             return None
 
-    #TODO not sure what it returns looks like a uriref to min? but not more
+    # TODO not sure what it returns looks like a uriref to min? but not more
     @property
     def min(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
 
-    #TODO not sure what it returns looks like a uriref to min? but not more
+    # TODO not sure what it returns looks like a uriref to min? but not more
     @property
     def max(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
@@ -1094,7 +1132,7 @@ class TrustworthinessAttributeSet(BaseEntity):
                 return Role(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Role for {urirdf}: {e}")
+            logging.error(f"Error retrieving Role for {self.uriref}: {e}")
             return None
 
     @property
@@ -1112,7 +1150,7 @@ class TrustworthinessAttributeSet(BaseEntity):
                 return TrustworthinessAttribute(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving TWA for {urirdf}: {e}")
+            logging.error(f"Error retrieving TWA for {self.uriref}: {e}")
             return None
 
 
@@ -1150,7 +1188,7 @@ class Threat(Entity):
                 return ThreatCategory(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving category for {urirdf}: {e}")
+            logging.error(f"Error retrieving category for {self.uriref}: {e}")
             return None
 
     @property
@@ -1168,7 +1206,7 @@ class Threat(Entity):
                 return Likelihood(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving frequency for {urirdf}: {e}")
+            logging.error(f"Error retrieving frequency for {self.uriref}: {e}")
             return None
 
     @property
@@ -1235,12 +1273,12 @@ class Threat(Entity):
             logging.error(f"Error retrieving normal op flag for {self.uriref}: {e}", exc_info=True)
             return None
 
-    #TODO not sure what it returns looks like a uriref to min? but not more
+    # TODO not sure what it returns looks like a uriref to min? but not more
     @property
     def min(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
 
-    #TODO not sure what it returns looks like a uriref to min? but not more
+    # TODO not sure what it returns looks like a uriref to min? but not more
     @property
     def max(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
@@ -1260,7 +1298,7 @@ class Threat(Entity):
                 return [MisbehaviourSet(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving caused misbehaviour set for {urirdf}: {e}")
+            logging.error(f"Error retrieving caused misbehaviour set for {self.uriref}: {e}")
             return None
 
     @property
@@ -1296,7 +1334,7 @@ class Threat(Entity):
                 return MatchingPattern(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving matching pattern for {urirdf}: {e}")
+            logging.error(f"Error retrieving matching pattern for {self.uriref}: {e}")
             return None
 
     @property
@@ -1314,7 +1352,7 @@ class Threat(Entity):
                 return Role(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Role object for {urirdf}: {e}")
+            logging.error(f"Error retrieving Role object for {self.uriref}: {e}")
             return None
 
 
@@ -1341,7 +1379,7 @@ class CASetting(BaseEntity):
                 return Control(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving control for ca setting {urirdf}: {e}")
+            logging.error(f"Error retrieving control for ca setting {self.uriref}: {e}")
             return None
 
     @property
@@ -1359,7 +1397,7 @@ class CASetting(BaseEntity):
                 return Asset(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Asset for {urirdf}: {e}")
+            logging.error(f"Error retrieving Asset for {self.uriref}: {e}")
             return None
 
     @property
@@ -1393,7 +1431,7 @@ class CASetting(BaseEntity):
                 return TrustworthinessLevel(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving TrustworthinessLevel for {urirdf}: {e}")
+            logging.error(f"Error retrieving TrustworthinessLevel for {self.uriref}: {e}")
             return None
 
     @property
@@ -1463,7 +1501,7 @@ class ConstructionPattern(Entity):
                 return MatchingPattern(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving matching pattern for {urirdf}: {e}")
+            logging.error(f"Error retrieving matching pattern for {self.uriref}: {e}")
             return None
 
     @property
@@ -1476,12 +1514,12 @@ class ConstructionPattern(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_priority'])
-            return int(urirdf) if urirdf else None
+            return int(urirdf) if urirdf is not None else None
         except (ValueError, TypeError) as e:
             logging.error(f"Invalid level value for {self.uriref}: {e}")
             return None
         except Exception as e:
-            logging.error(f"Error retrieving priority value for {uriref}: {e}")
+            logging.error(f"Error retrieving priority value for {self.uriref}: {e}")
             return None
 
     @property
@@ -1510,12 +1548,12 @@ class ConstructionPattern(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['max_iterations'])
-            return int(urirdf) if urirdf else None
+            return int(urirdf) if urirdf is not None else None
         except (ValueError, TypeError) as e:
             logging.error(f"Invalid max iteration value for {self.uriref}: {e}")
             return None
         except Exception as e:
-            logging.error(f"Error retrieving max iteration value for {uriref}: {e}")
+            logging.error(f"Error retrieving max iteration value for {self.uriref}: {e}")
             return None
 
     @property
@@ -1533,7 +1571,7 @@ class ConstructionPattern(Entity):
                 return [RoleLink(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving role links for {urirdf}: {e}")
+            logging.error(f"Error retrieving role links for {self.uriref}: {e}")
             return None
 
 
@@ -1560,7 +1598,7 @@ class DistinctNodeGroup(BaseEntity):
                 return [Node(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving nodes for {urirdf}: {e}")
+            logging.error(f"Error retrieving nodes for {self.uriref}: {e}")
             return None
 
 
@@ -1587,7 +1625,7 @@ class InferredNodeSetting(BaseEntity):
                 return Node(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Node for setting {urirdf}: {e}")
+            logging.error(f"Error retrieving Node for setting {self.uriref}: {e}")
             return None
 
     @property
@@ -1605,7 +1643,7 @@ class InferredNodeSetting(BaseEntity):
                 return Node(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Node for setting {urirdf}: {e}")
+            logging.error(f"Error retrieving Node for setting {self.uriref}: {e}")
             return None
 
     @property
@@ -1623,8 +1661,9 @@ class InferredNodeSetting(BaseEntity):
                 return [Node(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving nodes for {urirdf}: {e}")
+            logging.error(f"Error retrieving nodes for {self.uriref}: {e}")
             return None
+
 
 class TWAADefaultSetting(BaseEntity):
     """ Represents a domain model TWAADefaultSetting """
@@ -1649,7 +1688,7 @@ class TWAADefaultSetting(BaseEntity):
                 return Asset(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Asset for {urirdf}: {e}")
+            logging.error(f"Error retrieving Asset for {self.uriref}: {e}")
             return None
 
     @property
@@ -1667,7 +1706,7 @@ class TWAADefaultSetting(BaseEntity):
                 return ImpactLevel(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving ImpactLevel for {urirdf}: {e}")
+            logging.error(f"Error retrieving ImpactLevel for {self.uriref}: {e}")
             return None
 
     @property
@@ -1701,9 +1740,8 @@ class TWAADefaultSetting(BaseEntity):
                 return TrustworthinessAttribute(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving TWA for {urirdf}: {e}")
+            logging.error(f"Error retrieving TWA for {self.uriref}: {e}")
             return None
-
 
 
 class MADefaultSetting(BaseEntity):
@@ -1729,7 +1767,7 @@ class MADefaultSetting(BaseEntity):
                 return Asset(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Asset for {urirdf}: {e}")
+            logging.error(f"Error retrieving Asset for {self.uriref}: {e}")
             return None
 
     @property
@@ -1747,7 +1785,7 @@ class MADefaultSetting(BaseEntity):
                 return Misbehaviour(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving misbehaviour for {urirdf}: {e}")
+            logging.error(f"Error retrieving misbehaviour for {self.uriref}: {e}")
             return None
 
     @property
@@ -1765,7 +1803,7 @@ class MADefaultSetting(BaseEntity):
                 return ImpactLevel(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving ImpactLevel for {urirdf}: {e}")
+            logging.error(f"Error retrieving ImpactLevel for {self.uriref}: {e}")
             return None
 
 
@@ -1793,7 +1831,7 @@ class Node(BaseEntity):
                 return Asset(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Asset for node {urirdf}: {e}")
+            logging.error(f"Error retrieving Asset for node {self.uriref}: {e}")
             return None
 
     @property
@@ -1811,7 +1849,7 @@ class Node(BaseEntity):
                 return Role(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving Role for node {urirdf}: {e}")
+            logging.error(f"Error retrieving Role for node {self.uriref}: {e}")
             return None
 
 
@@ -1824,16 +1862,58 @@ class RoleLink(BaseEntity):
         return "Domain RoleLink: ({})".format(str(self.uriref))
 
     @property
-    def link_type(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['link_type'])
+    def link_type(self) -> Optional[Relation]:
+        """
+        Retrieve the link type for the role link.
+
+        Returns:
+            Relation: The Relation object of the role link.
+            None: If no Relation is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['link_type'])
+            if urirdf:
+                return Relation(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving relation for role link {self.uriref}: {e}")
+            return None
 
     @property
-    def links_from(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['links_from'])
+    def links_from(self) -> Optional[Role]:
+        """
+        Retrieve the Role object for the current node.
+
+        Returns:
+            Role: The Role object of the node.
+            None: If no Role is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['links_from'])
+            if urirdf:
+                return Role(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Role for node {self.uriref}: {e}")
+            return None
 
     @property
-    def links_to(self):
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['links_to'])
+    def links_to(self) -> Optional[Role]:
+        """
+        Retrieve the Role object for the current node.
+
+        Returns:
+            Role: The Role object of the node.
+            None: If no Role is found for the given URI reference.
+        """
+        try:
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['links_to'])
+            if urirdf:
+                return Role(urirdf, self.domain_model)
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving Role for node {self.uriref}: {e}")
+            return None
 
 
 class RootPattern(BaseEntity):
@@ -1874,7 +1954,7 @@ class RootPattern(BaseEntity):
                 return [Node(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving nodes for {urirdf}: {e}")
+            logging.error(f"Error retrieving nodes for {self.uriref}: {e}")
             return None
 
     @property
@@ -1892,7 +1972,7 @@ class RootPattern(BaseEntity):
                 return [RoleLink(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving role link for {urirdf}: {e}")
+            logging.error(f"Error retrieving role link for {self.uriref}: {e}")
             return None
 
 
@@ -1919,7 +1999,7 @@ class TrustworthinessImpactSet(BaseEntity):
                 return Misbehaviour(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving misbehaviour for {urirdf}: {e}")
+            logging.error(f"Error retrieving misbehaviour for {self.uriref}: {e}")
             return None
 
     @property
@@ -1937,7 +2017,7 @@ class TrustworthinessImpactSet(BaseEntity):
                 return TrustworthinessAttribute(urirdf, self.domain_model)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving TWA for {urirdf}: {e}")
+            logging.error(f"Error retrieving TWA for {self.uriref}: {e}")
             return None
 
 

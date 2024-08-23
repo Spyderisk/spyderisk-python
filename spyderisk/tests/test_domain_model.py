@@ -27,7 +27,7 @@ from spyderisk.domain_model import DomainModel
 from spyderisk.domain_model import TrustworthinessAttribute, TrustworthinessAttributeSet
 from spyderisk.domain_model import Asset, Relation, Threat, ThreatCategory, Likelihood
 from spyderisk.domain_model import RootPattern, MatchingPattern, ConstructionPattern
-from spyderisk.domain_model import ControlStrategy
+from spyderisk.domain_model import ControlStrategy, PerformanceImpactLevel
 
 
 # @unittest.skip("temporarily skipping domain model test")
@@ -64,6 +64,7 @@ class TestDomainModel(unittest.TestCase):
         mps = self.domain_model.matching_patterns
         for mp in mps:
             self.assertIsInstance(mp, MatchingPattern, "not a matching pattern")
+            print(mp.summary())
 
     def test_root_patterns(self):
         rps = self.domain_model.root_patterns
@@ -94,8 +95,11 @@ class TestDomainModel(unittest.TestCase):
     def test_performance_impact_level_range(self):
         performance_impact_range = self.domain_model.performance_impact_level_range()
         for rl in performance_impact_range:
+            pil = PerformanceImpactLevel(rl, self.domain_model)
             value = self.domain_model.level_value(rl)
             self.assertIsInstance(value, int, "performance_impact level value should be an int")
+            self.assertIsInstance(pil.level_value, int, "performance_impact level value should be an int")
+            self.assertEqual(value, pil.level_value)
             label = self.domain_model.label_uri(rl)
             self.assertIsInstance(label, Literal, "performance_impact label should be an RDF Literal")
 
