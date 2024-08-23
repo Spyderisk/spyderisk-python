@@ -64,7 +64,6 @@ class TestDomainModel(unittest.TestCase):
         mps = self.domain_model.matching_patterns
         for mp in mps:
             self.assertIsInstance(mp, MatchingPattern, "not a matching pattern")
-            print(mp.summary())
 
     def test_root_patterns(self):
         rps = self.domain_model.root_patterns

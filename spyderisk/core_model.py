@@ -103,7 +103,7 @@ PREDICATE = {
         "has_optional_node": GRAPH['core'].hasOptionalNode,
         "has_prior": GRAPH['core'].hasPrior,
         "has_priority": GRAPH['core'].hasPriority,
-        "has_rohibited_link": GRAPH['core'].hasProhibitedLink,
+        "has_prohibited_link": GRAPH['core'].hasProhibitedLink,
         "has_prohibited_node": GRAPH['core'].hasProhibitedNode,
         "has_risk": GRAPH['core'].hasRisk,
         "has_role": GRAPH['core'].hasRole,

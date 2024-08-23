@@ -362,7 +362,7 @@ class Asset(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertable'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving asset assertability for {self.uriref}: {e}", exc_info=True)
             return None
@@ -378,7 +378,7 @@ class Asset(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving asset visibility for {self.uriref}: {e}", exc_info=True)
             return None
@@ -399,7 +399,7 @@ class Asset(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving asset parents for {self.uriref}: {e}")
-            return None
+            return []
 
     @property
     def trustworthiness_attributes(self) -> List['TrustworthinessAttribute']:
@@ -443,7 +443,7 @@ class Role(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving meta located assets for {self.uriref}: {e}")
-            return None
+            return []
 
 
 class Control(Entity):
@@ -464,7 +464,7 @@ class Control(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving control visibility for {self.uriref}: {e}", exc_info=True)
             return None
@@ -574,7 +574,7 @@ class ControlSet(BaseEntity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving located assets for CS {self.uriref}: {e}")
-            return None
+            return []
 
     @property
     def coverage_level(self) -> Optional[TrustworthinessLevel]:
@@ -756,8 +756,8 @@ class Relation(Entity):
                             or None if there was an error retrieving the value.
         """
         try:
-            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertible'])
-            return bool(urirdf) if urirdf else None
+            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertable'])
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving assertable flag for {self.uriref}: {e}", exc_info=True)
             return None
@@ -773,7 +773,7 @@ class Relation(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", exc_info=True)
             return None
@@ -789,7 +789,7 @@ class Relation(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['hidden'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", exc_info=True)
             return None
@@ -827,7 +827,7 @@ class Misbehaviour(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", exc_info=True)
             return None
@@ -856,7 +856,7 @@ class Misbehaviour(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving located assets for {self.uriref}: {e}")
-            return None
+            return []
 
 
 class MisbehaviourSet(BaseEntity):
@@ -919,7 +919,7 @@ class MatchingPattern(Entity):
         NecessaryNodes: {len(self.necessary_nodes)}
         ProhibitedNodes: {len(self.prohibited_nodes)}
         Links: {len(self.links)}
-        ProhibitedLinks: {len(self.links)}
+        ProhibitedLinks: {len(self.prohibited_links)}
         """
         return summary
 
@@ -975,7 +975,7 @@ class MatchingPattern(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving Node for node {self.uriref}: {e}")
-            return None
+            return []
 
     @property
     def prohibited_nodes(self) -> Optional[List['Node']]:
@@ -993,7 +993,7 @@ class MatchingPattern(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving prohibited Node for node {self.uriref}: {e}")
-            return None
+            return []
 
     @property
     def links(self) -> Optional[List['RoleLink']]:
@@ -1011,7 +1011,7 @@ class MatchingPattern(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving role link for {self.uriref}: {e}")
-            return None
+            return []
 
     @property
     def prohibited_links(self) -> Optional[List['RoleLink']]:
@@ -1029,7 +1029,7 @@ class MatchingPattern(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving role link for {self.uriref}: {e}")
-            return None
+            return []
 
 
 class TrustworthinessAttribute(Entity):
@@ -1050,7 +1050,7 @@ class TrustworthinessAttribute(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving TWA visibility for {self.uriref}: {e}", exc_info=True)
             return None
@@ -1112,7 +1112,7 @@ class TrustworthinessAttributeSet(BaseEntity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving twa set visibility for {self.uriref}: {e}", exc_info=True)
             return None
@@ -1220,7 +1220,7 @@ class Threat(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_current_risk'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving current risk for {self.uriref}: {e}", exc_info=True)
             return None
@@ -1236,7 +1236,7 @@ class Threat(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_future_risk'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving future risk for {self.uriref}: {e}", exc_info=True)
             return None
@@ -1252,7 +1252,7 @@ class Threat(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_secondary_threat'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving secondary threat flag for {self.uriref}: {e}", exc_info=True)
             return None
@@ -1268,7 +1268,7 @@ class Threat(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_normal_op'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving normal op flag for {self.uriref}: {e}", exc_info=True)
             return None
@@ -1299,7 +1299,7 @@ class Threat(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving caused misbehaviour set for {self.uriref}: {e}")
-            return None
+            return []
 
     @property
     def entry_point(self) -> Optional[List[TrustworthinessAttributeSet]]:
@@ -1317,7 +1317,7 @@ class Threat(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving entry point TWA set for {self.uriref}: {e}")
-            return None
+            return []
 
     @property
     def applies_to(self) -> Optional[MatchingPattern]:
@@ -1411,7 +1411,7 @@ class CASetting(BaseEntity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertible'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving assertable flag for {self.uriref}: {e}", exc_info=True)
             return None
@@ -1445,7 +1445,7 @@ class CASetting(BaseEntity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['independent_levels'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving independent levels flag for {self.uriref}: {e}", exc_info=True)
             return None
@@ -1533,7 +1533,7 @@ class ConstructionPattern(Entity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['iterate'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving iterate status for {self.uriref}: {e}", exc_info=True)
             return None
@@ -1662,7 +1662,7 @@ class InferredNodeSetting(BaseEntity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving nodes for {self.uriref}: {e}")
-            return None
+            return []
 
 
 class TWAADefaultSetting(BaseEntity):
@@ -1720,7 +1720,7 @@ class TWAADefaultSetting(BaseEntity):
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['independent_levels'])
-            return bool(urirdf) if urirdf else None
+            return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving independent levels flag for {self.uriref}: {e}", exc_info=True)
             return None
@@ -1817,7 +1817,6 @@ class Node(BaseEntity):
 
     @property
     def meta_asset(self) -> Optional[Asset]:
-        return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['meta_has_asset'])
         """
         Retrieve the asset for the current node.
 
@@ -1955,7 +1954,7 @@ class RootPattern(BaseEntity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving nodes for {self.uriref}: {e}")
-            return None
+            return []
 
     @property
     def links(self) -> Optional[RoleLink]:
