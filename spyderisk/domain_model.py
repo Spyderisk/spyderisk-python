@@ -213,6 +213,8 @@ class Entity(BaseEntity):
     Attributes:
         uriref (str): The unique reference URI for the entity.
         domain_model (object): The domain model associated with the entity.
+        label (str): The label of the entity.
+        comment (str): The comment of the entity.
     """
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
@@ -639,7 +641,7 @@ class ControlStrategy(Entity):
             return None
 
     @property
-    def current_risk(self) -> Optional[bool]:
+    def is_current_risk(self) -> Optional[bool]:
         """
         Retrieve the current risk status as a boolean for the current threat.
 
@@ -655,7 +657,7 @@ class ControlStrategy(Entity):
             return None
 
     @property
-    def future_risk(self) -> Optional[bool]:
+    def is_future_risk(self) -> Optional[bool]:
         """
         Retrieve the future risk status as a boolean for the current threat.
 
@@ -1210,7 +1212,7 @@ class Threat(Entity):
             return None
 
     @property
-    def current_risk(self) -> Optional[bool]:
+    def is_current_risk(self) -> Optional[bool]:
         """
         Retrieve the current risk status as a boolean for the current threat.
 
@@ -1226,7 +1228,7 @@ class Threat(Entity):
             return None
 
     @property
-    def future_risk(self) -> Optional[bool]:
+    def is_future_risk(self) -> Optional[bool]:
         """
         Retrieve the future risk status as a boolean for the current threat.
 
@@ -1242,7 +1244,7 @@ class Threat(Entity):
             return None
 
     @property
-    def secondary_threat(self) -> Optional[bool]:
+    def is_secondary_threat(self) -> Optional[bool]:
         """
         Retrieve the secondary threat flag as a boolean for the current threat.
 
@@ -1258,7 +1260,7 @@ class Threat(Entity):
             return None
 
     @property
-    def normal_op(self) -> Optional[bool]:
+    def is_normal_op(self) -> Optional[bool]:
         """
         Retrieve the normal op flag as a boolean for the current threat.
 
