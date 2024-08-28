@@ -23,19 +23,22 @@
 import gzip
 import logging
 import re
-from functools import cache, cached_property
+from functools import cache
 from itertools import chain
+from collections import defaultdict
 
-from rdflib import ConjunctiveGraph, Literal, URIRef
+from rdflib import ConjunctiveGraph, Literal, URIRef, RDF, OWL
 
-import domain_model
-from core_model import GRAPH, PREDICATE, OBJECT
+from .core_model import GRAPH, PREDICATE, OBJECT
+from .domain_model import DomainModel
+from .risk_vector import RiskVector
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 # TODO: remove these domain-model specific predicates
 DEFAULT_TW = URIRef(GRAPH['domain'] + "#DefaultTW")
 IN_SERVICE = URIRef(GRAPH['domain'] + "#InService")
+
 
 class SystemModel(ConjunctiveGraph):
     def __init__(self, system_model_filename, domain_model_filename):
@@ -56,14 +59,115 @@ class SystemModel(ConjunctiveGraph):
                 self.inferred_graph = named_graph
             elif named_graph.identifier.endswith("/ui"):
                 self.ui_graph = named_graph
+            else:
+                self.graph = named_graph
 
         if domain_model_filename:
-            self.domain_model = domain_model.DomainModel(domain_model_filename)
+            self.domain_model = DomainModel(domain_model_filename)
 
-        # TODO: check that the domain model matches the system model
+        # check that the domain model matches the system model
+        self.check_domain_match()
+
+    def check_domain_match(self):
+        dm_version = self.domain_model.version_info
+
+        # TODO: does it have to check the name too, e.g. NETWORK?
+
+        if dm_version != self.domain_version:
+            logging.error(f"Domain model version mismatch! Expected: {self.domain_version}, Found: {dm_version}")
+            raise ValueError(f"Domain model version mismatch! Expected: {self.domain_version}, Found: {dm_version}")
+
+    @property
+    @cache
+    def ontology_uri(self):
+        return next(self.subjects(RDF.type, OWL.Ontology), None)
+
+    @property
+    @cache
+    def created(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['created'])
+
+    @property
+    @cache
+    def modified(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['modified'])
+
+    @property
+    @cache
+    def domain_version(self):
+        return self.value(self.ontology_uri, PREDICATE['domain_version'])
 
     def label(self, uriref):
         return self.value(subject=uriref, predicate=PREDICATE['label'])
+
+    @property
+    def system_label(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['label'])
+
+    @property
+    def system_comment(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['comment'])
+
+    @property
+    @cache
+    def risk_calculation_mode(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['risk_calculation_mode'])
+
+    @property
+    @cache
+    def has_risk(self):
+        return self.value(URIRef(self.graph.identifier), PREDICATE['has_risk'])
+
+    @property
+    @cache
+    def risks_valid(self):
+        result = self.value(URIRef(self.graph.identifier), PREDICATE['risks_valid'])
+        return bool(result)
+
+    @property
+    @cache
+    def is_valid(self):
+        result = self.value(URIRef(self.graph.identifier), PREDICATE['is_valid'])
+        return bool(result)
+
+    @property
+    @cache
+    def is_validating(self):
+        result = self.value(URIRef(self.graph.identifier), PREDICATE['is_validating'])
+        return bool(result)
+
+    @property
+    @cache
+    def is_calculating_risk(self):
+        result = next(self.objects(None, PREDICATE['is_calculating_risk']), None)
+        return bool(result)
+
+    @property
+    def info(self):
+        """ Summary of the system model """
+        summary = (
+                f"System label:          {self.system_label}\n"
+                f"System comment:        {self.system_comment}\n"
+                f"Created:               {self.created}\n"
+                f"Modified:              {self.modified}\n\n"
+
+                f"Domain model:          {self.domain_version}\n"
+                f"Domain label:          {self.domain_model.label}\n\n"
+
+                f"Is valid:              {self.is_valid}\n"
+                f"Assets:                {len(self.assets)}\n"
+                f"Misbehaviour sets:     {len(self.misbehaviour_sets)}\n"
+                f"Threats:               {len(self.threats)}\n"
+                f"Control strategies:    {len(self.control_strategies)}\n"
+                f"Control sets:          {len(self.control_sets)}\n\n"
+
+                f"Risks valid:           {self.risks_valid}\n"
+                f"Risk calculation mode: {self.risk_calculation_mode}\n"
+                f"Has risk:              {self.domain_model.label_uri(self.has_risk)}\n"
+                f"Risk vector:           {self.risk_vector()}\n"
+                f"Overall risk level:    {self.risk_vector().overall_level}\n\n"
+                )
+        return summary
 
     def get_entity(self, uriref):
         if (uriref, PREDICATE['type'], OBJECT['misbehaviour_set']) in self:
@@ -76,12 +180,16 @@ class SystemModel(ConjunctiveGraph):
             return ControlStrategy(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['trustworthiness_attribute_set']) in self:
             return TrustworthinessAttributeSet(uriref, self)
-        elif (uriref, PREDICATE['type'], OBJECT['asset']) in self:
-            return Asset(uriref, self)
         elif (uriref, PREDICATE['type'], OBJECT['control_set']) in self:
             return ControlSet(uriref, self)
         else:
-            raise KeyError(uriref)
+            # check if it's a domain asset class
+            obj = next(self.objects(uriref, PREDICATE['type']), None)
+            if self.domain_model.is_asset(obj):
+                return Asset(uriref, self)
+            else:
+                logging.error(f"Not identified OBJECT: {str(obj)[60:]} {str(uriref)[60:]}")
+                raise KeyError(uriref)
 
     @cache
     def asset(self, uriref):
@@ -112,6 +220,7 @@ class SystemModel(ConjunctiveGraph):
         return TrustworthinessAttributeSet(uriref, self)
 
     @property
+    @cache
     def assets(self):
         asset_urirefs = []
         for asset_class in [asset.uriref for asset in self.domain_model.assets]:
@@ -142,19 +251,55 @@ class SystemModel(ConjunctiveGraph):
     def trustworthiness_attribute_sets(self):
         return [self.trustworthiness_attribute_set(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute_set'])]
 
+    def risk_vector(self):
+        rv = defaultdict(int)
+        rl_map = defaultdict(int)
+        for ms in self.misbehaviour_sets:
+            if ms.risk_level_label not in rl_map:
+                rl_map[ms.risk_level_label] = ms.risk_level_value
+            rv[ms.risk_level_label] += 1
+        try:
+            return RiskVector(rv, rl_map)
+        except ValueError as e:
+            logging.error(f"Error creating RiskVector: {e}")
+            return None
+
+    def filter_misbehaviour_sets(self, risk_level_value=3):
+        logging.debug(f"filter misbehaviours at level {risk_level_value}")
+
+        filtered = [
+                ms for ms in self.misbehaviour_sets
+                if ms.risk_level_value >= risk_level_value
+                ]
+
+        ms_sorted = sorted(filtered, key=lambda ms: ms.risk_level_value, reverse=True)
+        logging.debug(f"filtered MS {len(ms_sorted)}/{len(self.misbehaviour_sets)}")
+
+        return ms_sorted
+
+
 class Entity():
     """Superclass of Threat, Misbehaviour, Trustwworthiness Attribute or Control Strategy."""
     def __init__(self, uriref, system_model):
         self.uriref = uriref
         self.system_model = system_model
 
+    @property
+    def has_id(self):
+        return self.system_model.value(self.uriref, PREDICATE['has_id'])
+
+    @property
+    def parent(self):
+        return self.system_model.value(self.uriref, PREDICATE['parent'])
+
+
 class Asset(Entity):
-    """Represents an Asset."""
+    """Represents a system model Asset."""
     def __init__(self, uriref, graph):
         super().__init__(uriref, graph)
 
     def __str__(self):
-        return "Asset: {} ({})".format(self.label, str(self.uriref))
+        return "System Asset: {} ({})".format(self.label, str(self.uriref))
 
     @property
     def label(self):
@@ -166,33 +311,44 @@ class Asset(Entity):
 
     @property
     def description(self):
-        return "{}\n  Asserted: {}\n  Domain model class: {}\n  Population: {}\n  Asserted links (object class):\n    {}\n  Links to:\n    {}\n  Links from:\n    {}\n  Trustworthiness Attributes:\n    {}\n  Controls:\n    {}\n  Consequences:\n    {}".format(
-            str(self), str(self.is_asserted), str(self.type), self.population_level_label,
-            "\n    ".join([link.comment for link in chain(self.links_to_asserted, self.links_from_asserted)]),
-            "\n    ".join([link.comment for link in self.links_to]),
-            "\n    ".join([link.comment for link in self.links_from]),
-            "\n    ".join([twas.comment for twas in self.trustworthiness_attribute_sets]),
-            "\n    ".join([control_set.comment for control_set in self.control_sets]),
-            "\n    ".join([misbehaviour_set.comment for misbehaviour_set in self.misbehaviour_sets]),
-        )
+        parts = [
+            f"{str(self)}\n",
+            f"  ID: {str(self.has_id)}\n",
+            f"  Asserted: {str(self.is_asserted)}\n",
+            f"  Domain model class: {str(self.type)}\n",
+            f"  Population: {self.population_level_label}\n",
+            "  Asserted links (object class):\n    "
+            + "\n    ".join(link.comment for link in chain(self.links_to_asserted, self.links_from_asserted)) + "\n",
+            "  Links to:\n    "
+            + "\n    ".join(link.comment for link in self.links_to) + "\n",
+            "  Links from:\n    "
+            + "\n    ".join(link.comment for link in self.links_from) + "\n",
+            "  Trustworthiness attribute sets:\n    "
+            + "\n    ".join(twas.comment for twas in self.trustworthiness_attribute_sets) + "\n",
+            "  Control sets:\n    "
+            + "\n    ".join(control_set.comment for control_set in self.control_sets) + "\n",
+            "  Misbehaviour sets:\n    "
+            + "\n    ".join(misbehaviour_set.comment for misbehaviour_set in self.misbehaviour_sets)
+        ]
+        return "".join(parts)
 
     @property
     def type(self):
         return self.system_model.domain_model.asset(self.system_model.value(self.uriref, PREDICATE['type']))
 
     @property
-    def is_asserted(self):
+    def is_asserted(self) -> bool:
         # an asset is asserted if its label is in the asserted graph (one way to tell)
         # return true if the asset label is not in the inferred graph
         return not any(self.system_model.inferred_graph.triples((self.uriref, PREDICATE['label'], None)))
-    
+
     def _population_uri(self):
         return self.system_model.value(self.uriref, PREDICATE['population'])
 
     @property
     def population_level_number(self):
-        return self.system_model.domain_model.level_number(self._population_uri())
-    
+        return self.system_model.domain_model.level_value(self._population_uri())
+
     @property
     def population_level_label(self):
         return self.system_model.domain_model.level_label(self._population_uri())
@@ -212,7 +368,7 @@ class Asset(Entity):
     @property
     def links_to(self):
         return [self.system_model.relation(uriref) for uriref in self.system_model.subjects(PREDICATE['links_from'], self.uriref)]
-    
+
     @property
     def links_from(self):
         return [self.system_model.relation(uriref) for uriref in self.system_model.subjects(PREDICATE['links_to'], self.uriref)]
@@ -220,10 +376,11 @@ class Asset(Entity):
     @property
     def links_to_asserted(self):
         return [link for link in self.links_to if link.links_to.is_asserted]
-    
+
     @property
     def links_from_asserted(self):
         return [link for link in self.links_from if link.links_from.is_asserted]
+
 
 class ControlSet(Entity):
     """Represents a Control Set: a Control at a specific Asset."""
@@ -268,11 +425,12 @@ class ControlSet(Entity):
 
     @property
     def coverage_level_number(self):
-        return self.system_model.domain_model.level_number(self._coverage_level_uri())
+        return self.system_model.domain_model.level_value(self._coverage_level_uri())
 
     @property
     def coverage_level_label(self):
         return self.system_model.domain_model.level_label(self._coverage_level_uri())
+
 
 class ControlStrategy(Entity):
     """Represents a Control Strategy."""
@@ -337,16 +495,24 @@ class ControlStrategy(Entity):
     @property
     def is_active(self):
         # TODO: do we need to check sufficient CS?
-        control_sets = self.control_sets
         all_proposed = True
-        for cs in control_sets:
+        for cs in self.mandatory_control_sets:
             all_proposed &= cs.is_proposed
         return all_proposed
+
+    @property
+    def mandatory_control_sets(self):
+        return [self.system_model.control_set(cs_uriref) for cs_uriref in self.system_model.objects(self.uriref, PREDICATE['has_mandatory_control_set'])]
+
+    @property
+    def optional_control_sets(self):
+        return [self.system_model.control_set(cs_uriref) for cs_uriref in self.system_model.objects(self.uriref, PREDICATE['has_optional_control_set'])]
 
     # TODO: deal with optional control sets
     @property
     def control_sets(self):
-        return [self.system_model.control_set(cs_uriref) for cs_uriref in self.system_model.objects(self.uriref, PREDICATE['has_mandatory_control_set'])]
+        return self.mandatory_control_sets + self.optional_control_sets
+
 
 class MisbehaviourSet(Entity):
     """Represents a Misbehaviour Set, or "Consequence" (a Misbehaviour at an Asset)."""
@@ -377,7 +543,7 @@ class MisbehaviourSet(Entity):
         elif consequence.startswith("Not"):
             aspect = un_camel_case(consequence[3:])
             consequence = "is not"
-        if aspect != None:
+        if aspect is not None:
             return '{} likelihood that "{}" {} {}'.format(likelihood, un_camel_case(asset), consequence, aspect)
         else:
             return '{} likelihood of: {} at {}'.format(likelihood, un_camel_case(consequence), un_camel_case(asset))
@@ -404,33 +570,40 @@ class MisbehaviourSet(Entity):
     def asset(self):
         return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
 
+    # TODO is it located_ at or asset?
+    @property
+    def located_at(self):
+        return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['located_at']))
+
     @property
     def misbehaviour(self):
         return self.system_model.domain_model.misbehaviour(self.system_model.value(self.uriref, PREDICATE['has_misbehaviour']))
 
     @property
     def likelihood_level_number(self):
-        return self.system_model.domain_model.level_number(self._likelihood_uri())
+        return self.system_model.domain_model.level_value(self._likelihood_uri())
 
     @property
     def likelihood_level_label(self):
-        return self.system_model.domain_model.level_label(self._likelihood_uri())
+        return self.system_model.domain_model.label_uri(self._likelihood_uri())
 
     @property
     def impact_number(self):
-        return self.system_model.domain_model.level_number(self._impact_uri())
+        return self.system_model.domain_model.level_value(self._impact_uri())
 
     @property
     def impact_level_label(self):
-        return self.system_model.domain_model.level_label(self._impact_uri())
+        return self.system_model.domain_model.label_uri(self._impact_uri())
 
     @property
-    def risk_level_number(self):
-        return self.system_model.domain_model.level_number(self._risk_uri())
+    @cache
+    def risk_level_value(self):
+        return self.system_model.domain_model.level_value(self._risk_uri())
 
     @property
+    @cache
     def risk_level_label(self):
-        return self.system_model.domain_model.level_label(self._risk_uri())
+        return self.system_model.domain_model.label_uri(self._risk_uri())
 
     @property
     def is_normal_op(self):
@@ -441,6 +614,11 @@ class MisbehaviourSet(Entity):
         # if the domain model doesn't support mixed cause Threats, then some MS may be external causes
         return (self.uriref, PREDICATE['is_external_cause'], Literal(True)) in self.system_model
 
+    # TODO
+    @property
+    def caused_by(self):
+        return (self.uriref, PREDICATE['is_external_cause'], Literal(True)) in self.system_model
+
     @property
     def threat_parents(self):
         """Get all the Threats that can cause this Misbehaviour (disregarding likelihoods and untriggered Threats)"""
@@ -448,6 +626,7 @@ class MisbehaviourSet(Entity):
         # TODO: it would be better to test if a threat had is_triggered and then check the threat's triggering CSGs to see if they were active
         # Easiest to just check the threat likelihood, but this relies on the risk calculation already being done
         return [threat for threat in threats if threat.likelihood_level_number >= 0]  # likelihood_number is set to -1 for untriggered threats
+
 
 class Relation(Entity):
     """Represents a Relation between two Assets. Called a CardinalityConstraint officially."""
@@ -474,11 +653,11 @@ class Relation(Entity):
     @property
     def type(self):
         return self.system_model.domain_model.relation(self.system_model.value(self.uriref, PREDICATE['link_type']))
-    
+
     @property
     def links_from(self):
         return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['links_from']))
-    
+
     @property
     def links_to(self):
         return self.system_model.asset(self.system_model.value(self.uriref, PREDICATE['links_to']))
@@ -486,11 +665,12 @@ class Relation(Entity):
     @property
     def source_cardinality(self):
         return int(self.system_model.value(self.uriref, PREDICATE['source_cardinality']))
-    
+
     @property
     def target_cardinality(self):
         return int(self.system_model.value(self.uriref, PREDICATE['target_cardinality']))
-        
+
+
 class TrustworthinessAttributeSet(Entity):
     """Represents a Trustworthiness Attribute Set."""
     def __init__(self, uriref, graph):
@@ -538,7 +718,7 @@ class TrustworthinessAttributeSet(Entity):
 
     @property
     def inferred_level_label(self):
-        return self.system_model.domain_model.level_label(self._inferred_tw_level_uri())
+        return self.system_model.domain_model.label_uri(self._inferred_tw_level_uri())
 
     @property
     def asserted_level_number(self):
@@ -546,7 +726,7 @@ class TrustworthinessAttributeSet(Entity):
 
     @property
     def asserted_level_label(self):
-        return self.system_model.domain_model.level_label(self._inferred_tw_level_uri())
+        return self.system_model.domain_model.label_uri(self._inferred_tw_level_uri())
 
     @property
     def is_external_cause(self):
@@ -557,6 +737,7 @@ class TrustworthinessAttributeSet(Entity):
     def is_default_tw(self):
         """Return Boolean describing whether this is a TWAS which has the Default TW attribute"""
         return (self.uriref, PREDICATE['has_twa'], DEFAULT_TW) in self.system_model
+
 
 class Threat(Entity):
     """Represents a Threat."""
@@ -571,6 +752,9 @@ class Threat(Entity):
 
     def _risk_uri(self):
         return self.system_model.value(self.uriref, PREDICATE['has_risk'])
+
+    def _frequency_uri(self):
+        return self.system_model.value(self.uriref, PREDICATE['has_frequency'])
 
     def _get_threat_comment(self):
         """Return the first part of the threat description (up to the colon)"""
@@ -615,7 +799,7 @@ class Threat(Entity):
     def likelihood_level_label(self):
         if self._likelihood_uri() is None:
             return "N/A"
-        return self.system_model.domain_model.level_label(self._likelihood_uri())
+        return self.system_model.domain_model.label_uri(self._likelihood_uri())
 
     @property
     def risk_level_number(self):
@@ -627,11 +811,19 @@ class Threat(Entity):
     def risk_level_label(self):
         if self._risk_uri() is None:
             return "N/A"
-        return self.system_model.domain_model.level_label(self._risk_uri())
+        return self.system_model.domain_model.label_uri(self._risk_uri())
 
     @property
     def is_normal_op(self):
         return (self.uriref, PREDICATE['is_normal_op'], Literal(True)) in self.system_model
+
+    @property
+    def is_current_risk(self):
+        return (self.uriref, PREDICATE['is_current_risk'], Literal(True)) in self.system_model
+
+    @property
+    def is_future_risk(self):
+        return (self.uriref, PREDICATE['is_future_risk'], Literal(True)) in self.system_model
 
     @property
     def is_root_cause(self):
@@ -662,18 +854,41 @@ class Threat(Entity):
         for twas in entry_points:
             twis = self.system_model.value(predicate=PREDICATE['affects'], object=twas)
             ms_urirefs.append(self.system_model.value(twis, PREDICATE['affected_by']))
-        return [self.system_model.misbehaviour(ms_uriref) for ms_uriref in ms_urirefs]
+        return [self.system_model.misbehaviour_set(ms_uriref) for ms_uriref in ms_urirefs]
 
     @property
     def secondary_threat_misbehaviour_parents(self):
         """Get all the Misbehaviours that can cause this Threat (disregarding likelihoods), for secondary Threat types"""
         ms_urirefs = self.system_model.objects(self.uriref, PREDICATE['has_secondary_effect_condition'])
-        return [self.system_model.misbehaviour(ms_uriref) for ms_uriref in ms_urirefs]
+        return [self.system_model.misbehaviour_set(ms_uriref) for ms_uriref in ms_urirefs]
 
     @property
     def misbehaviour_parents(self):
         """Get all the Misbehaviours that can cause this Threat (disregarding likelihoods), for all Threat types"""
         return self.primary_threat_misbehaviour_parents + self.secondary_threat_misbehaviour_parents
+
+    @property
+    def blocked_by(self):
+        blocked_by_csgs = self.system_model.objects(self.uriref, PREDICATE['blocked_by'])
+        return [csg for csg in blocked_by_csgs]
+
+    @property
+    def mitigated_by(self):
+        mitigated_by_csgs = self.system_model.objects(self.uriref, PREDICATE['mitigated_by'])
+        return [csg for csg in mitigated_by_csgs]
+
+    @property
+    def triggered_by(self):
+        triggered_by_csgs = self.system_model.objects(self.uriref, PREDICATE['triggered_by'])
+        return [csg for csg in triggered_by_csgs]
+
+    @property
+    def threatens(self):
+        return next(self.system_model.objects(self.uriref, PREDICATE['threatens']), None)
+
+    @property
+    def is_triggered(self):
+        return (self.uriref, PREDICATE['is_triggered'], Literal(True)) in self.system_model
 
     @property
     def control_strategies(self, future_risk=None):
@@ -682,17 +897,18 @@ class Threat(Entity):
         # the "blocks" predicate means a CSG appropriate for current or future risk calc
         # the "mitigates" predicate means a CSG appropriate for future risk (often a contingency plan for a current risk CSG); excluded from likelihood calc in current risk
         # The "mitigates" predicate is not used in newer domain models
-        if future_risk == True or future_risk == None:
+        if future_risk is True or future_risk is None:
             for csg_uri in chain(self.system_model.subjects(PREDICATE['blocks'], self.uriref), self.system_model.subjects(PREDICATE['mitigates'], self.uriref)):
                 csg = self.system_model.control_strategy(csg_uri)
                 if csg.is_future_risk_csg:
                     csgs.append(csg)
-        elif future_risk == False or future_risk == None:
+        elif future_risk is False or future_risk is None:
             for csg_uri in self.system_model.subjects(PREDICATE['blocks'], self.uriref):
                 csg = self.system_model.control_strategy(csg_uri)
                 if csg.is_current_risk_csg and not csg.has_inactive_contingency_plan:
                     csgs.append(csg)
         return csgs
+
 
 def un_camel_case(text):
     if text is None or text.strip() == "":
