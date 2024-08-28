@@ -25,7 +25,7 @@ from spyderisk.config.test_config import TEST_DOMAIN_FILE
 
 from spyderisk.domain_model import DomainModel
 from spyderisk.domain_model import TrustworthinessAttribute, TrustworthinessAttributeSet
-from spyderisk.domain_model import Asset, Relation, Threat, ThreatCategory, Likelihood
+from spyderisk.domain_model import Asset, LinkType, Threat, ThreatCategory, Likelihood
 from spyderisk.domain_model import RootPattern, MatchingPattern, ConstructionPattern
 from spyderisk.domain_model import ControlStrategy, PerformanceImpactLevel
 
@@ -146,14 +146,14 @@ class TestDomainModel(unittest.TestCase):
         for asset in assets:
             self.assertIsInstance(asset, Asset)
 
-    def test_relations(self):
-        # Ensure that relations are found
-        relations = self.domain_model.relations
-        self.assertGreater(len(relations), 0, "No relations found in the domain model.")
+    def test_link_types(self):
+        # Ensure that link_types are found
+        link_types = self.domain_model.link_types
+        self.assertGreater(len(link_types), 0, "No link types found in the domain model.")
 
-        # Check that each relation is an instance of Relation
-        for relation in relations:
-            self.assertIsInstance(relation, Relation)
+        # Check that each relation is an instance of LinkType
+        for link_type in link_types:
+            self.assertIsInstance(link_type, LinkType)
 
     def test_threats(self):
         # Ensure that threats are found

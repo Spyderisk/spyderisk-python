@@ -7,7 +7,7 @@ from .domain_model import Entity as DomainEntity
 from .domain_model import Asset as DomainAsset
 from .domain_model import Control as DomainControl
 from .domain_model import ControlStrategy as DomainControlStrategy
-from .domain_model import Relation as DomainRelation
+from .domain_model import LinkType as DomainLinkType
 from .domain_model import Misbehaviour as DomainMisbehaviour
 from .domain_model import Threat as DomainThreat
 from .domain_model import TrustworthinessAttribute as DomainTrustworthinessAttribute

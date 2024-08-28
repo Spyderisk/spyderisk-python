@@ -27,6 +27,7 @@ from typing import Optional, List
 from itertools import chain
 
 from rdflib import ConjunctiveGraph, RDF, OWL
+from rdflib.term import URIRef
 
 from .core_model import PREDICATE, OBJECT
 
@@ -74,8 +75,8 @@ class DomainModel(ConjunctiveGraph):
         return Misbehaviour(uriref, self)
 
     @cache
-    def relation(self, uriref):
-        return Relation(uriref, self)
+    def link_type(self, uriref):
+        return LinkType(uriref)
 
     @cache
     def root_pattern(self, uriref):
@@ -139,8 +140,8 @@ class DomainModel(ConjunctiveGraph):
         return [self.misbehaviour(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['misbehaviour'])]
 
     @property
-    def relations(self):
-        return [Relation(uriref, self) for uriref in self.subjects(PREDICATE['type'], OBJECT['relation'])]
+    def link_types(self):
+        return [LinkType(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['relation'])]
 
     @property
     def root_patterns(self):
@@ -732,83 +733,17 @@ class ControlStrategy(Entity):
         return self.domain_model.level_number_inverse(self.effectiveness_number)
 
 
-# TODO not sure this exists in DM?
-class Relation(Entity):
-    def __init__(self, uriref, domain_model):
-        super().__init__(uriref, domain_model)
+class LinkType:
+    """ Represents link type URIs """
+    def __init__(self, uriref):
+        self.uriref = uriref
 
     def __str__(self):
-        return "Domain Relation: {} ({})".format(self.label, str(self.uriref))
+        return str(self.uriref)
 
     @property
-    def description(self):
-        return "{}\n  Comment: {}\n  Range:\n    {}\n  Domain:\n    {}".format(
-            self.label, self.comment,
-            "\n    ".join([str(asset.label) for asset in self.range]),
-            "\n    ".join([str(asset.label) for asset in self.domain])
-        )
-
-    @property
-    def is_assertable(self) -> Optional[bool]:
-        """
-        Retrieve the asset assertibility as a boolean.
-
-        Returns:
-            Optional[bool]: True if 'is_assertable' is set, False if not set,
-                            or None if there was an error retrieving the value.
-        """
-        try:
-            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_assertable'])
-            return bool(urirdf) if urirdf is not None else None
-        except Exception as e:
-            logging.error(f"Error retrieving assertable flag for {self.uriref}: {e}", exc_info=True)
-            return None
-
-    @property
-    def is_visible(self) -> Optional[bool]:
-        """
-        Retrieve the misbehaviour visibility as a boolean.
-
-        Returns:
-            Optional[bool]: True if 'is_visible' is set, False if not set,
-                            or None if there was an error retrieving the value.
-        """
-        try:
-            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['is_visible'])
-            return bool(urirdf) if urirdf is not None else None
-        except Exception as e:
-            logging.error(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", exc_info=True)
-            return None
-
-    @property
-    def hidden(self) -> Optional[bool]:
-        """
-        Retrieve the misbehaviour visibility as a boolean.
-
-        Returns:
-            Optional[bool]: True if 'is_hidden' is set, False if not set,
-                            or None if there was an error retrieving the value.
-        """
-        try:
-            urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['hidden'])
-            return bool(urirdf) if urirdf is not None else None
-        except Exception as e:
-            logging.error(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", exc_info=True)
-            return None
-
-    # TODO
-    """ the type is of type owl#ObjectProperty which has
-    domain -> domain#Host (Asset?)
-    range -> domain#Host (Asset?)
-    """
-
-    @property
-    def range(self):
-        return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['range'])]
-
-    @property
-    def domain(self):
-        return [self.domain_model.asset(asset_uriref) for asset_uriref in self.domain_model.objects(subject=self.uriref, predicate=PREDICATE['domain'])]
+    def uri(self) -> Optional[URIRef]:
+        return self.uriref
 
 
 class Misbehaviour(Entity):
@@ -1872,21 +1807,21 @@ class RoleLink(BaseEntity):
         return "Domain RoleLink: ({})".format(str(self.uriref))
 
     @property
-    def link_type(self) -> Optional[Relation]:
+    def link_type(self) -> Optional[LinkType]:
         """
         Retrieve the link type for the role link.
 
         Returns:
-            Relation: The Relation object of the role link.
-            None: If no Relation is found for the given URI reference.
+            LinkType: The LinkType URIRef of the role link.
+            None: If no link type URIRef is found for the given URI reference.
         """
         try:
             urirdf = self.domain_model.value(subject=self.uriref, predicate=PREDICATE['link_type'])
             if urirdf:
-                return Relation(urirdf, self.domain_model)
+                return LinkType(urirdf)
             return None
         except Exception as e:
-            logging.error(f"Error retrieving relation for role link {self.uriref}: {e}")
+            logging.error(f"Error retrieving link type for role link {self.uriref}: {e}")
             return None
 
     @property
