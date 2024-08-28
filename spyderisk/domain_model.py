@@ -1286,7 +1286,7 @@ class Threat(Entity):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
 
     @property
-    def causes_misbehaviour(self) -> Optional[List[MisbehaviourSet]]:
+    def causes_misbehaviours(self) -> Optional[List[MisbehaviourSet]]:
         """
         Retrieve the caused misbehaviour set object for the current threat.
 
@@ -1304,7 +1304,7 @@ class Threat(Entity):
             return []
 
     @property
-    def entry_point(self) -> Optional[List[TrustworthinessAttributeSet]]:
+    def entry_points(self) -> Optional[List[TrustworthinessAttributeSet]]:
         """
         Retrieve the entry point TWA set object for the current threat.
 
@@ -1437,7 +1437,7 @@ class CASetting(BaseEntity):
             return None
 
     @property
-    def independent_levels(self) -> Optional[bool]:
+    def has_independent_levels(self) -> Optional[bool]:
         """
         Retrieve the CA settings independent levels as a boolean.
 
@@ -1525,7 +1525,7 @@ class ConstructionPattern(Entity):
             return None
 
     @property
-    def iterate(self) -> Optional[bool]:
+    def does_iterate(self) -> Optional[bool]:
         """
         Retrieve the iterate status as a boolean.
 
@@ -1712,7 +1712,7 @@ class TWAADefaultSetting(BaseEntity):
             return None
 
     @property
-    def independent_levels(self) -> Optional[bool]:
+    def has_independent_levels(self) -> Optional[bool]:
         """
         Retrieve the TWAA settings independent levels as a boolean.
 
@@ -1959,7 +1959,7 @@ class RootPattern(BaseEntity):
             return []
 
     @property
-    def links(self) -> Optional[RoleLink]:
+    def links(self) -> Optional[List[RoleLink]]:
         """
         Retrieve the role link for the current root pattern.
 
