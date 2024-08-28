@@ -732,8 +732,25 @@ class ControlStrategy(Entity):
     def maximum_likelihood_number(self):
         return self.domain_model.level_number_inverse(self.effectiveness_number)
 
+class LinkType(URIRef):
+    """ Represents link type URIs """
 
-class LinkType:
+    def __new__(cls, uriref):
+        # Create and return an instance of URIRef
+        return super(LinkType, cls).__new__(cls, uriref)
+
+    def __init__(self, uriref):
+        super().__init__()  # Initialize the URIRef part
+        self.uriref = uriref  # Additional initialization if needed
+
+    def __str__(self):
+        return str(self.uriref)
+
+    @property
+    def uri(self) -> Optional[URIRef]:
+        return self.uriref
+
+class LinkType1:
     """ Represents link type URIs """
     def __init__(self, uriref):
         self.uriref = uriref
