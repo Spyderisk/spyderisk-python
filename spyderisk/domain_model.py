@@ -490,11 +490,11 @@ class Control(Entity):
             return None
 
     @property
-    def min(self):
+    def has_min(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
 
     @property
-    def max(self):
+    def has_max(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
 
     @property
@@ -673,11 +673,11 @@ class ControlStrategy(Entity):
             return None
 
     @property
-    def min(self):
+    def has_min(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
 
     @property
-    def max(self):
+    def has_max(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
 
     @property
@@ -835,11 +835,11 @@ class Misbehaviour(Entity):
             return None
 
     @property
-    def min(self):
+    def has_min(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
 
     @property
-    def max(self):
+    def has_max(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
 
     @property
@@ -1087,12 +1087,12 @@ class TrustworthinessAttribute(Entity):
 
     # TODO not sure what it returns looks like a uriref to min? but not more
     @property
-    def min(self):
+    def has_min(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
 
     # TODO not sure what it returns looks like a uriref to min? but not more
     @property
-    def max(self):
+    def has_max(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
 
 
@@ -1277,12 +1277,12 @@ class Threat(Entity):
 
     # TODO not sure what it returns looks like a uriref to min? but not more
     @property
-    def min(self):
+    def has_min(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_min'])
 
     # TODO not sure what it returns looks like a uriref to min? but not more
     @property
-    def max(self):
+    def has_max(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
 
     @property
@@ -1359,7 +1359,10 @@ class Threat(Entity):
 
 
 class CASetting(BaseEntity):
-    """ Represents a domain model CASetting """
+    """ CASetting class represents the data which is used to create the
+    ControlSets in the system model.
+    """
+
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
@@ -1419,7 +1422,7 @@ class CASetting(BaseEntity):
             return None
 
     @property
-    def has_level(self) -> Optional[TrustworthinessLevel]:
+    def effectiveness(self) -> Optional[TrustworthinessLevel]:
         """
         Retrieve the trustworthiness level for CA setting.
 
@@ -1668,7 +1671,10 @@ class InferredNodeSetting(BaseEntity):
 
 
 class TWAADefaultSetting(BaseEntity):
-    """ Represents a domain model TWAADefaultSetting """
+    """ TWAADefaultSetting class represents the data which is used to define
+    the defaults for a system model TrustworthinessAttributeSet.
+    """
+
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
@@ -1747,7 +1753,10 @@ class TWAADefaultSetting(BaseEntity):
 
 
 class MADefaultSetting(BaseEntity):
-    """ Represents a domain model MADefaultSetting """
+    """ MADefaultSetting class represents the data which is used to define
+    the defaults for a system model MisbehaviourSets.
+    """
+
     def __init__(self, uriref, domain_model):
         super().__init__(uriref, domain_model)
 
@@ -1961,10 +1970,10 @@ class RootPattern(BaseEntity):
     @property
     def links(self) -> Optional[List[RoleLink]]:
         """
-        Retrieve the role link for the current root pattern.
+        Retrieve the role links list for the current root pattern.
 
         Returns:
-            RoleLink: The RoleLink this root pattern.
+            List[RoleLink]: The RoleLink list this root pattern.
             None: If no role link is found for the given URI reference.
         """
         try:
@@ -1973,7 +1982,7 @@ class RootPattern(BaseEntity):
                 return [RoleLink(urirdf, self.domain_model) for urirdf in urirdf_list]
             return []
         except Exception as e:
-            logging.error(f"Error retrieving role link for {self.uriref}: {e}")
+            logging.error(f"Error retrieving role link list for {self.uriref}: {e}")
             return None
 
 
