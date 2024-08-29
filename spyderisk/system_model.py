@@ -346,7 +346,7 @@ class Asset(Entity):
         return self.system_model.value(self.uriref, PREDICATE['population'])
 
     @property
-    def population_level_number(self):
+    def population_level_value(self):
         return self.system_model.domain_model.level_value(self._population_uri())
 
     @property
@@ -424,7 +424,7 @@ class ControlSet(Entity):
         return self.system_model.value(self.uriref, PREDICATE['has_coverage_level'])
 
     @property
-    def coverage_level_number(self):
+    def coverage_level_value(self):
         return self.system_model.domain_model.level_value(self._coverage_level_uri())
 
     @property
@@ -465,16 +465,16 @@ class ControlStrategy(Entity):
         return self.system_model.domain_model.control_strategy(self.system_model.value(self.uriref, PREDICATE['parent']))
 
     @property
-    def effectiveness_number(self):
-        return self.parent.effectiveness_number
+    def effectiveness_value(self):
+        return self.parent.effectiveness_value
 
     @property
     def effectiveness_label(self):
         return self.parent.effectiveness_label
 
     @property
-    def maximum_likelihood_number(self):
-        return self.parent.maximum_likelihood_number
+    def maximum_likelihood_value(self):
+        return self.parent.maximum_likelihood_value
 
     @property
     def is_current_risk(self):
@@ -580,7 +580,7 @@ class MisbehaviourSet(Entity):
         return self.system_model.domain_model.misbehaviour(self.system_model.value(self.uriref, PREDICATE['has_misbehaviour']))
 
     @property
-    def likelihood_level_number(self):
+    def likelihood_level_value(self):
         return self.system_model.domain_model.level_value(self._likelihood_uri())
 
     @property
@@ -588,7 +588,7 @@ class MisbehaviourSet(Entity):
         return self.system_model.domain_model.label_uri(self._likelihood_uri())
 
     @property
-    def impact_number(self):
+    def impact_value(self):
         return self.system_model.domain_model.level_value(self._impact_uri())
 
     @property
@@ -625,7 +625,7 @@ class MisbehaviourSet(Entity):
         threats = [self.system_model.threat(t) for t in self.system_model.subjects(PREDICATE['causes_misbehaviour'], self.uriref)]
         # TODO: it would be better to test if a threat had is_triggered and then check the threat's triggering CSGs to see if they were active
         # Easiest to just check the threat likelihood, but this relies on the risk calculation already being done
-        return [threat for threat in threats if threat.likelihood_level_number >= 0]  # likelihood_number is set to -1 for untriggered threats
+        return [threat for threat in threats if threat.likelihood_level_value >= 0]  # likelihood_value is set to -1 for untriggered threats
 
 
 class Relation(Entity):
@@ -713,16 +713,16 @@ class TrustworthinessAttributeSet(Entity):
         return self.system_model.value(self.uriref, PREDICATE['has_inferred_level'])
 
     @property
-    def inferred_level_number(self):
-        return self.system_model.domain_model.level_number(self._inferred_tw_level_uri())
+    def inferred_level_value(self):
+        return self.system_model.domain_model.level_value(self._inferred_tw_level_uri())
 
     @property
     def inferred_level_label(self):
         return self.system_model.domain_model.label_uri(self._inferred_tw_level_uri())
 
     @property
-    def asserted_level_number(self):
-        return self.system_model.domain_model.level_number(self._asserted_tw_level_uri())
+    def asserted_level_value(self):
+        return self.system_model.domain_model.level_value(self._asserted_tw_level_uri())
 
     @property
     def asserted_level_label(self):
@@ -790,10 +790,10 @@ class Threat(Entity):
         return comment[0].upper() + comment[1:]  # uppercase the first word
 
     @property
-    def likelihood_level_number(self):
+    def likelihood_level_value(self):
         if self._likelihood_uri() is None:
             return -1
-        return self.system_model.domain_model.level_number(self._likelihood_uri())
+        return self.system_model.domain_model.level_value(self._likelihood_uri())
 
     @property
     def likelihood_level_label(self):
@@ -802,10 +802,10 @@ class Threat(Entity):
         return self.system_model.domain_model.label_uri(self._likelihood_uri())
 
     @property
-    def risk_level_number(self):
+    def risk_level_value(self):
         if self._risk_uri() is None:
             return -1
-        return self.system_model.domain_model.level_number(self._risk_uri())
+        return self.system_model.domain_model.level_value(self._risk_uri())
 
     @property
     def risk_level_label(self):

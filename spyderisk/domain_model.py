@@ -41,163 +41,6 @@ class DomainError(Exception):
         self.uriref = uriref
 
 
-class DomainModel(ConjunctiveGraph):
-    def __init__(self, domain_model_filename):
-        super().__init__()
-
-        logging.info(f"Loading domain model {domain_model_filename}")
-
-        if domain_model_filename.endswith(".zip"):
-            with zipfile.ZipFile(domain_model_filename, "r") as archive:
-                for file in archive.namelist():
-                    if file.endswith(".nq"):
-                        with archive.open(file) as f:
-                            self.parse(f, format="nquads")
-                        break
-        else:
-            self.parse(domain_model_filename, format="nquads")
-
-    @cache
-    def asset(self, uriref):
-        return Asset(uriref, self)
-
-    @cache
-    def control(self, uriref):
-        return Control(uriref, self)
-
-    @cache
-    def construction_pattern(self, uriref):
-        return ConstructionPattern(uriref, self)
-
-    @cache
-    def control_strategy(self, uriref):
-        return ControlStrategy(uriref, self)
-
-    @cache
-    def matching_pattern(self, uriref):
-        return MatchingPattern(uriref, self)
-
-    @cache
-    def misbehaviour(self, uriref):
-        return Misbehaviour(uriref, self)
-
-    @cache
-    def link_type(self, uriref):
-        return LinkType(uriref)
-
-    @cache
-    def root_pattern(self, uriref):
-        return RootPattern(uriref, self)
-
-    @cache
-    def threat(self, uriref):
-        return Threat(uriref, self)
-
-    @cache
-    def trustworthiness_attribute(self, uriref):
-        return TrustworthinessAttribute(uriref, self)
-
-    @cache
-    def trustworthiness_attribute_set(self, uriref):
-        return TrustworthinessAttributeSet(uriref, self)
-
-    @property
-    @cache
-    def ontology_uri(self):
-        return next(self.subjects(RDF.type, OWL.Ontology), None)
-
-    @property
-    @cache
-    def version_info(self):
-        return self.value(self.ontology_uri, PREDICATE['version_info'])
-
-    @property
-    def label(self):
-        return self.value(self.ontology_uri, PREDICATE['label'])
-
-    @property
-    def comment(self):
-        return self.value(self.ontology_uri, PREDICATE['comment'])
-
-    def is_asset(self, uriref):
-        return (uriref, PREDICATE['type'], OBJECT['asset']) in self
-
-    @property
-    def assets(self):
-        return [self.asset(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['asset'])]
-
-    @property
-    def controls(self):
-        return [self.control(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['control'])]
-
-    @property
-    def construction_patterns(self):
-        return [self.construction_pattern(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['construction_pattern'])]
-
-    @property
-    def control_strategies(self):
-        return [self.control_strategy(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['control_strategy'])]
-
-    @property
-    def matching_patterns(self):
-        return [self.matching_pattern(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['matching_pattern'])]
-
-    @property
-    def misbehaviours(self):
-        return [self.misbehaviour(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['misbehaviour'])]
-
-    @property
-    def link_types(self):
-        return [LinkType(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['relation'])]
-
-    @property
-    def root_patterns(self):
-        return [RootPattern(uriref, self) for uriref in self.subjects(PREDICATE['type'], OBJECT['root_pattern'])]
-
-    @property
-    def threats(self):
-        return [self.threat(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['threat'])]
-
-    @property
-    def trustworthiness_attributes_set(self):
-        return [self.trustworthiness_attribute_set(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute_set'])]
-
-    @property
-    def trustworthiness_attributes(self):
-        return [self.trustworthiness_attribute(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute'])]
-
-    def level_value(self, uriref):
-        return int(self.value(subject=uriref, predicate=PREDICATE['level_value']))
-
-    def label_uri(self, uriref):
-        return self.value(subject=uriref, predicate=PREDICATE['label'])
-
-    def comment_uri(self, uriref):
-        return self.value(subject=uriref, predicate=PREDICATE['comment'])
-
-    def level_number_inverse(self, number):
-        # TODO: capture the max TW/likelihood level when domain model is loaded
-        return 5 - number
-
-    def cost_level_range(self):
-        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['cost_level'])]
-
-    def impact_level_range(self):
-        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['impact_level'])]
-
-    def performance_impact_level_range(self):
-        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['performance_impact_level'])]
-
-    def population_level_range(self):
-        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['population_level'])]
-
-    def risk_level_range(self):
-        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['risk_level'])]
-
-    def tw_level_range(self):
-        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_level'])]
-
-
 class BaseEntity():
     """
     Superclass of Entity.
@@ -728,16 +571,16 @@ class ControlStrategy(Entity):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_blocking_effect'])
 
     @property
-    def effectiveness_number(self):
-        return self.domain_model.level_number(self._effectiveness_uriref())
+    def effectiveness_value(self):
+        return self.domain_model.level_value(self._effectiveness_uriref())
 
     @property
     def effectiveness_label(self):
         return self.domain_model.level_label(self._effectiveness_uriref())
 
     @property
-    def maximum_likelihood_number(self):
-        return self.domain_model.level_number_inverse(self.effectiveness_number)
+    def maximum_likelihood_value(self):
+        return self.domain_model.level_value_inverse(self.effectiveness_value)
 
 
 class LinkType(URIRef):
@@ -1976,5 +1819,163 @@ class TrustworthinessImpactSet(BaseEntity):
         except Exception as e:
             logging.error(f"Error retrieving TWA for {self.uriref}: {e}")
             raise DomainError(f"Error retrieving affects for {self.uriref}: {e}", uriref=self.uriref) from e
+
+
+class DomainModel(ConjunctiveGraph):
+    def __init__(self, domain_model_filename):
+        super().__init__()
+
+        logging.info(f"Loading domain model {domain_model_filename}")
+
+        if domain_model_filename.endswith(".zip"):
+            with zipfile.ZipFile(domain_model_filename, "r") as archive:
+                for file in archive.namelist():
+                    if file.endswith(".nq"):
+                        with archive.open(file) as f:
+                            self.parse(f, format="nquads")
+                        break
+        else:
+            self.parse(domain_model_filename, format="nquads")
+
+    @cache
+    def asset(self, uriref):
+        return Asset(uriref, self)
+
+    @cache
+    def control(self, uriref):
+        return Control(uriref, self)
+
+    @cache
+    def construction_pattern(self, uriref):
+        return ConstructionPattern(uriref, self)
+
+    @cache
+    def control_strategy(self, uriref):
+        return ControlStrategy(uriref, self)
+
+    @cache
+    def matching_pattern(self, uriref):
+        return MatchingPattern(uriref, self)
+
+    @cache
+    def misbehaviour(self, uriref):
+        return Misbehaviour(uriref, self)
+
+    @cache
+    def link_type(self, uriref):
+        return LinkType(uriref)
+
+    @cache
+    def root_pattern(self, uriref):
+        return RootPattern(uriref, self)
+
+    @cache
+    def threat(self, uriref):
+        return Threat(uriref, self)
+
+    @cache
+    def trustworthiness_attribute(self, uriref):
+        return TrustworthinessAttribute(uriref, self)
+
+    @cache
+    def trustworthiness_attribute_set(self, uriref):
+        return TrustworthinessAttributeSet(uriref, self)
+
+    @property
+    @cache
+    def ontology_uri(self):
+        return next(self.subjects(RDF.type, OWL.Ontology), None)
+
+    @property
+    @cache
+    def version_info(self):
+        return self.value(self.ontology_uri, PREDICATE['version_info'])
+
+    @property
+    def label(self):
+        return self.value(self.ontology_uri, PREDICATE['label'])
+
+    @property
+    def comment(self):
+        return self.value(self.ontology_uri, PREDICATE['comment'])
+
+    def is_asset(self, uriref):
+        return (uriref, PREDICATE['type'], OBJECT['asset']) in self
+
+    @property
+    def assets(self):
+        #return [Asset(uriref, self) for uriref in self.subjects(PREDICATE['type'], OBJECT['asset'])]
+        return [self.asset(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['asset'])]
+
+    @property
+    def controls(self):
+        return [self.control(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['control'])]
+
+    @property
+    def construction_patterns(self):
+        return [self.construction_pattern(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['construction_pattern'])]
+
+    @property
+    def control_strategies(self):
+        return [self.control_strategy(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['control_strategy'])]
+
+    @property
+    def matching_patterns(self):
+        return [self.matching_pattern(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['matching_pattern'])]
+
+    @property
+    def misbehaviours(self):
+        return [self.misbehaviour(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['misbehaviour'])]
+
+    @property
+    def link_types(self):
+        return [LinkType(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['relation'])]
+
+    @property
+    def root_patterns(self):
+        return [RootPattern(uriref, self) for uriref in self.subjects(PREDICATE['type'], OBJECT['root_pattern'])]
+
+    @property
+    def threats(self):
+        return [self.threat(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['threat'])]
+
+    @property
+    def trustworthiness_attributes_set(self):
+        return [self.trustworthiness_attribute_set(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute_set'])]
+
+    @property
+    def trustworthiness_attributes(self):
+        return [self.trustworthiness_attribute(uriref) for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_attribute'])]
+
+    def level_value(self, uriref):
+        return int(self.value(subject=uriref, predicate=PREDICATE['level_value']))
+
+    def label_uri(self, uriref):
+        return self.value(subject=uriref, predicate=PREDICATE['label'])
+
+    def comment_uri(self, uriref):
+        return self.value(subject=uriref, predicate=PREDICATE['comment'])
+
+    def level_value_inverse(self, number):
+        # TODO: capture the max TW/likelihood level when domain model is loaded
+        return 5 - number
+
+    def cost_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['cost_level'])]
+
+    def impact_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['impact_level'])]
+
+    def performance_impact_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['performance_impact_level'])]
+
+    def population_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['population_level'])]
+
+    def risk_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['risk_level'])]
+
+    def tw_level_range(self):
+        return [uriref for uriref in self.subjects(PREDICATE['type'], OBJECT['trustworthiness_level'])]
 
 
