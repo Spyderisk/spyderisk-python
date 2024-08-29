@@ -34,6 +34,13 @@ from .core_model import PREDICATE, OBJECT
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
+class DomainError(Exception):
+    """Custom exception for errors related to Domain model operations."""
+    def __init__(self, message: str, uriref=None):
+        super().__init__(message)
+        self.uriref = uriref
+
+
 class DomainModel(ConjunctiveGraph):
     def __init__(self, domain_model_filename):
         super().__init__()
@@ -621,7 +628,7 @@ class ControlStrategy(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving blocking threat for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving control strategy threat for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def blocking_effect(self) -> Optional[TrustworthinessLevel]:
@@ -639,7 +646,7 @@ class ControlStrategy(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving TrustworthinessLevel for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving control strategy blocking effect for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def is_current_risk(self) -> Optional[bool]:
@@ -655,7 +662,7 @@ class ControlStrategy(Entity):
             return bool(urirdf) if urirdf else None
         except Exception as e:
             logging.error(f"Error retrieving current risk for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving is current risk for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def is_future_risk(self) -> Optional[bool]:
@@ -671,7 +678,7 @@ class ControlStrategy(Entity):
             return bool(urirdf) if urirdf else None
         except Exception as e:
             logging.error(f"Error retrieving future risk for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving is future risk for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def has_min(self):
@@ -697,7 +704,7 @@ class ControlStrategy(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving mandatory control set for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving mandatory cs for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def optional_cs(self) -> Optional[ControlSet]:
@@ -715,7 +722,7 @@ class ControlStrategy(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving optional control set for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving optional cs for {self.uriref}: {e}", uriref=self.uriref) from e
 
     def _effectiveness_uriref(self):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_blocking_effect'])
@@ -772,7 +779,7 @@ class Misbehaviour(Entity):
             return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving misbehaviour visibility for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def has_min(self):
@@ -783,7 +790,7 @@ class Misbehaviour(Entity):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
 
     @property
-    def located_at(self) -> Optional[List[Asset]]:
+    def located_at(self) -> List[Asset]:
         """
         Retrieve the assets list for the current misbehavour.
 
@@ -798,7 +805,7 @@ class Misbehaviour(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving located assets for {self.uriref}: {e}")
-            return []
+            raise DomainError(f"Error retrieving misbehaviour located at for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class MisbehaviourSet(BaseEntity):
@@ -825,7 +832,7 @@ class MisbehaviourSet(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving misbehaviour for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving misbehaviour for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def located_at(self) -> Optional[Role]:
@@ -843,7 +850,7 @@ class MisbehaviourSet(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Role for MS {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving located at for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class MatchingPattern(Entity):
@@ -881,7 +888,7 @@ class MatchingPattern(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving distinct node group for node {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving distinct node group at for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def root_pattern(self) -> Optional['RootPattern']:
@@ -899,10 +906,10 @@ class MatchingPattern(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving root pattern for node {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving root pattern at for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
-    def necessary_nodes(self) -> Optional[List['Node']]:
+    def necessary_nodes(self) -> List['Node']:
         """
         Retrieve the Node object for the current matching pattern.
 
@@ -917,10 +924,10 @@ class MatchingPattern(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving Node for node {self.uriref}: {e}")
-            return []
+            raise DomainError(f"Error retrieving necessary nodes at for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
-    def prohibited_nodes(self) -> Optional[List['Node']]:
+    def prohibited_nodes(self) -> List['Node']:
         """
         Retrieve the prohibited Node list for the current matching pattern.
 
@@ -935,10 +942,10 @@ class MatchingPattern(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving prohibited Node for node {self.uriref}: {e}")
-            return []
+            raise DomainError(f"Error retrieving prohibited nodes at for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
-    def links(self) -> Optional[List['RoleLink']]:
+    def links(self) -> List['RoleLink']:
         """
         Retrieve the role link for the current root pattern.
 
@@ -953,10 +960,10 @@ class MatchingPattern(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving role link for {self.uriref}: {e}")
-            return []
+            raise DomainError(f"Error retrieving links at for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
-    def prohibited_links(self) -> Optional[List['RoleLink']]:
+    def prohibited_links(self) -> List['RoleLink']:
         """
         Retrieve the role link for the current root pattern.
 
@@ -971,7 +978,7 @@ class MatchingPattern(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving role link for {self.uriref}: {e}")
-            return []
+            raise DomainError(f"Error retrieving prohibited links at for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class TrustworthinessAttribute(Entity):
@@ -995,7 +1002,7 @@ class TrustworthinessAttribute(Entity):
             return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving TWA visibility for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving is_visible at for {self.uriref}: {e}", uriref=self.uriref) from e
 
     # TODO is it part of TWA?
     @property
@@ -1008,7 +1015,7 @@ class TrustworthinessAttribute(Entity):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['max_of'])
 
     @property
-    def meta_located_at(self) -> Optional[List[Asset]]:
+    def meta_located_at(self) -> List[Asset]:
         """
         Retrieve the assets list object for the current TWA.
 
@@ -1023,7 +1030,7 @@ class TrustworthinessAttribute(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving meta located assets for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving meta located at for {self.uriref}: {e}", uriref=self.uriref) from e
 
     # TODO not sure what it returns looks like a uriref to min? but not more
     @property
@@ -1057,7 +1064,7 @@ class TrustworthinessAttributeSet(BaseEntity):
             return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving twa set visibility for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving is visible for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def located_at(self) -> Optional[Role]:
@@ -1075,7 +1082,7 @@ class TrustworthinessAttributeSet(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Role for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving located at for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def twa(self) -> Optional[TrustworthinessAttribute]:
@@ -1093,7 +1100,7 @@ class TrustworthinessAttributeSet(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving TWA for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving TWA for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class Threat(Entity):
@@ -1131,7 +1138,7 @@ class Threat(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving category for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving category for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def frequency(self) -> Optional[Likelihood]:
@@ -1165,7 +1172,7 @@ class Threat(Entity):
             return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving current risk for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving is_current_risk for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def is_future_risk(self) -> Optional[bool]:
@@ -1181,7 +1188,7 @@ class Threat(Entity):
             return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving future risk for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving is_future_risk for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def is_secondary_threat(self) -> Optional[bool]:
@@ -1197,7 +1204,7 @@ class Threat(Entity):
             return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving secondary threat flag for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving is_secodary_threat for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def is_normal_op(self) -> Optional[bool]:
@@ -1213,7 +1220,7 @@ class Threat(Entity):
             return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving normal op flag for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving is_normal_op for {self.uriref}: {e}", uriref=self.uriref) from e
 
     # TODO not sure what it returns looks like a uriref to min? but not more
     @property
@@ -1226,7 +1233,7 @@ class Threat(Entity):
         return self.domain_model.value(subject=self.uriref, predicate=PREDICATE['has_max'])
 
     @property
-    def causes_misbehaviours(self) -> Optional[List[MisbehaviourSet]]:
+    def causes_misbehaviours(self) -> List[MisbehaviourSet]:
         """
         Retrieve the caused misbehaviour set object for the current threat.
 
@@ -1241,10 +1248,10 @@ class Threat(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving caused misbehaviour set for {self.uriref}: {e}")
-            return []
+            raise DomainError(f"Error retrieving causes misbehaviour for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
-    def entry_points(self) -> Optional[List[TrustworthinessAttributeSet]]:
+    def entry_points(self) -> List[TrustworthinessAttributeSet]:
         """
         Retrieve the entry point TWA set object for the current threat.
 
@@ -1259,7 +1266,7 @@ class Threat(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving entry point TWA set for {self.uriref}: {e}")
-            return []
+            raise DomainError(f"Error retrieving entry points for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def applies_to(self) -> Optional[MatchingPattern]:
@@ -1277,7 +1284,7 @@ class Threat(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving matching pattern for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving applies to for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def threatens(self) -> Optional[Role]:
@@ -1295,7 +1302,7 @@ class Threat(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Role object for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving threatens for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class CASetting(BaseEntity):
@@ -1325,7 +1332,7 @@ class CASetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving control for ca setting {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has control for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def meta_located_at(self) -> Optional[Asset]:
@@ -1343,7 +1350,7 @@ class CASetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Asset for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has meta located at for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def is_assertable(self) -> Optional[bool]:
@@ -1377,7 +1384,7 @@ class CASetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving TrustworthinessLevel for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving effectiveness for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def has_independent_levels(self) -> Optional[bool]:
@@ -1393,7 +1400,7 @@ class CASetting(BaseEntity):
             return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving independent levels flag for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving has independent levels for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class ComplianceSet(Entity):
@@ -1405,7 +1412,7 @@ class ComplianceSet(Entity):
         return "Domain ComplianceSet: {} ({})".format(self.label, str(self.uriref))
 
     @property
-    def requires_treatment_of(self) -> Optional[List[Threat]]:
+    def requires_treatment_of(self) -> List[Threat]:
         """
         Retrieve the list of threat objects for the current compliance set.
 
@@ -1420,7 +1427,7 @@ class ComplianceSet(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving threats for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has requires treatment of for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class ConstructionPattern(Entity):
@@ -1447,7 +1454,7 @@ class ConstructionPattern(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving matching pattern for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving matching pattern for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def priority(self) -> Optional[int]:
@@ -1465,7 +1472,7 @@ class ConstructionPattern(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving priority value for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving priority for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def does_iterate(self) -> Optional[bool]:
@@ -1481,7 +1488,7 @@ class ConstructionPattern(Entity):
             return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving iterate status for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving does iterate for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def max_iterations(self) -> Optional[int]:
@@ -1499,7 +1506,7 @@ class ConstructionPattern(Entity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving max iteration value for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving max iterations for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def inferred_links(self) -> Optional[List['RoleLink']]:
@@ -1517,7 +1524,7 @@ class ConstructionPattern(Entity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving role links for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving inferred links for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class DistinctNodeGroup(BaseEntity):
@@ -1544,7 +1551,7 @@ class DistinctNodeGroup(BaseEntity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving nodes for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving property for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class InferredNodeSetting(BaseEntity):
@@ -1571,7 +1578,7 @@ class InferredNodeSetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Node for setting {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving property for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def displayed_at_node(self) -> Optional[Role]:
@@ -1589,10 +1596,10 @@ class InferredNodeSetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Node for setting {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving delayed node for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
-    def includes_node_in_uri(self) -> Optional[List['Node']]:
+    def includes_node_in_uri(self) -> List['Node']:
         """
         Retrieve the node list for the current inferred node setting.
 
@@ -1607,7 +1614,7 @@ class InferredNodeSetting(BaseEntity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving nodes for {self.uriref}: {e}")
-            return []
+            raise DomainError(f"Error retrieving includes node in uri for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class TWAADefaultSetting(BaseEntity):
@@ -1637,7 +1644,7 @@ class TWAADefaultSetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Asset for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving located at for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def has_level(self) -> Optional[ImpactLevel]:
@@ -1655,7 +1662,7 @@ class TWAADefaultSetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving ImpactLevel for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has level for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def has_independent_levels(self) -> Optional[bool]:
@@ -1671,7 +1678,7 @@ class TWAADefaultSetting(BaseEntity):
             return bool(urirdf) if urirdf is not None else None
         except Exception as e:
             logging.error(f"Error retrieving independent levels flag for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving has independent levels for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def twa(self) -> Optional[TrustworthinessAttribute]:
@@ -1689,7 +1696,7 @@ class TWAADefaultSetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving TWA for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving TWA for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class MADefaultSetting(BaseEntity):
@@ -1719,7 +1726,7 @@ class MADefaultSetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Asset for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving located at asset for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def has_misbehaviour(self) -> Optional[Misbehaviour]:
@@ -1737,7 +1744,7 @@ class MADefaultSetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving misbehaviour for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has misbehaviour for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def has_level(self) -> Optional[ImpactLevel]:
@@ -1755,7 +1762,7 @@ class MADefaultSetting(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving ImpactLevel for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has level for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class Node(BaseEntity):
@@ -1782,7 +1789,7 @@ class Node(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Asset for node {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has meta asset for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def role(self) -> Optional[Role]:
@@ -1800,7 +1807,7 @@ class Node(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Role for node {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has role for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class RoleLink(BaseEntity):
@@ -1827,7 +1834,7 @@ class RoleLink(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving link type for role link {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has link type for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def links_from(self) -> Optional[Role]:
@@ -1845,7 +1852,7 @@ class RoleLink(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Role for node {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has links from for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def links_to(self) -> Optional[Role]:
@@ -1863,7 +1870,7 @@ class RoleLink(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving Role for node {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has links to for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class RootPattern(BaseEntity):
@@ -1887,10 +1894,10 @@ class RootPattern(BaseEntity):
             return label_value if label_value else None
         except Exception as e:
             logging.error(f"Error retrieving label for {self.uriref}: {e}", exc_info=True)
-            return None
+            raise DomainError(f"Error retrieving has label to for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
-    def key_nodes(self) -> Optional[List[Node]]:
+    def key_nodes(self) -> List[Node]:
         """
         Retrieve the node list for the current root pattern.
 
@@ -1905,10 +1912,10 @@ class RootPattern(BaseEntity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving nodes for {self.uriref}: {e}")
-            return []
+            raise DomainError(f"Error retrieving has key node to for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
-    def links(self) -> Optional[List[RoleLink]]:
+    def links(self) -> List[RoleLink]:
         """
         Retrieve the role links list for the current root pattern.
 
@@ -1923,7 +1930,7 @@ class RootPattern(BaseEntity):
             return []
         except Exception as e:
             logging.error(f"Error retrieving role link list for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving has links for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
 class TrustworthinessImpactSet(BaseEntity):
@@ -1950,7 +1957,7 @@ class TrustworthinessImpactSet(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving misbehaviour for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving affected by for {self.uriref}: {e}", uriref=self.uriref) from e
 
     @property
     def affects(self) -> Optional[TrustworthinessAttribute]:
@@ -1968,6 +1975,6 @@ class TrustworthinessImpactSet(BaseEntity):
             return None
         except Exception as e:
             logging.error(f"Error retrieving TWA for {self.uriref}: {e}")
-            return None
+            raise DomainError(f"Error retrieving affects for {self.uriref}: {e}", uriref=self.uriref) from e
 
 
